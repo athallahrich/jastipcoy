@@ -1,0 +1,45 @@
+export const useApi = () => {
+  const config = useRuntimeConfig();
+  const baseUrl = 'http://localhost/jastiper-engine/api';
+
+  const fetchApi = async (endpoint, options = {}) => {
+    try {
+      const response = await fetch(`${baseUrl}${endpoint}`, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          ...options.headers,
+        },
+      });
+      if (!response.ok) throw new Error('API request failed');
+      return await response.json();
+    } catch (error) {
+      console.error('API Error:', error);
+      throw error;
+    }
+  };
+
+  return {
+    fetchApi,
+    getLocations: () => fetchApi('/locations'),
+    createLocation: (data) => fetchApi('/locations', { method: 'POST', body: JSON.stringify(data) }),
+    registerJastiper: (data) => fetchApi('/register_jastiper', { method: 'POST', body: JSON.stringify(data) }),
+    createSession: (data) => fetchApi('/sessions', { method: 'POST', body: JSON.stringify(data) }),
+    getSessions: (params = '') => fetchApi(`/sessions${params}`),
+    getSession: (id) => fetchApi(`/sessions?id=${id}`),
+    getSessionByToken: (token) => fetchApi(`/sessions?token=${token}`),
+    placeOrder: (data) => fetchApi('/orders', { method: 'POST', body: JSON.stringify(data) }),
+    getOrders: (sessionId) => fetchApi(`/orders?session_id=${sessionId}`),
+    updateOrderStatus: (id, status) => fetchApi('/orders', { method: 'PATCH', body: JSON.stringify({ id, status }) }),
+    deleteOrder: (id) => fetchApi(`/orders?id=${id}`, { method: 'DELETE' }),
+    updateBatchStatus: (sessionId, status) => fetchApi('/update_orders_status', { method: 'POST', body: JSON.stringify({ session_id: sessionId, status }) }),
+    getDashboardStats: (jastiperId) => fetchApi(`/dashboard_stats?jastiper_id=${jastiperId}`),
+    updateProfile: (data) => fetchApi('/update_profile', { method: 'POST', body: JSON.stringify(data) }),
+    getUser: (id) => fetchApi(`/user?id=${id}`),
+    getOrder: (id) => fetchApi(`/order_by_id?id=${id}`),
+    getPaymentMethods: (userId) => fetchApi(`/payment_methods?user_id=${userId}`),
+    addPaymentMethod: (data) => fetchApi('/payment_methods', { method: 'POST', body: JSON.stringify(data) }),
+    deletePaymentMethod: (id) => fetchApi(`/payment_methods?id=${id}`, { method: 'DELETE' }),
+    uploadReceipt: (data) => fetchApi('/upload_receipt', { method: 'POST', body: JSON.stringify(data) }),
+  };
+};
