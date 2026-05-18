@@ -319,9 +319,8 @@ const copyShareLink = () => {
 };
 
 const blastWhatsApp = () => {
-    if (orders.value.length === 0) return;
-    const phones = orders.value.map(o => o.buyer_phone).join(',');
-    const text = encodeURIComponent(`Halo teman-teman, sesi jastip '${session.value.title}' memasuki tahap baru! Pantau terus ya ✨`);
+    const link = `${window.location.origin}/sessions?token=${session.value.share_token}`;
+    const text = encodeURIComponent(`Halo teman-teman! Saya sedang membuka jastip '${session.value.title}' nih. Yuk yang mau titip bisa langsung klik link ini ya:\n\n${link}\n\nBuruan order sebelum kuota penuh! ✨`);
     window.open(`https://wa.me/?text=${text}`, '_blank');
 };
 
