@@ -69,6 +69,10 @@
 </template>
 
 <script setup>
+definePageMeta({
+  middleware: 'auth-jastiper'
+});
+
 const { getPaymentMethods, addPaymentMethod, deletePaymentMethod } = useApi();
 const paymentMethods = ref([]);
 const isLoading = ref(false);

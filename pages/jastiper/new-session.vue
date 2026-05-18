@@ -197,6 +197,10 @@
 </template>
 
 <script setup>
+definePageMeta({
+  middleware: 'auth-jastiper'
+});
+
 const { getLocations, createLocation, createSession } = useApi();
 const currentStep = ref(1);
 const isLoading = ref(false);

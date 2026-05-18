@@ -191,11 +191,11 @@
 
           <!-- Actions -->
           <div class="space-y-3 pt-4">
-             <a :href="`https://wa.me/${session.jastiper_phone || ''}?text=Halo, saya baru saja memesan jastip '${session.title}'. Ini bukti transfernya.`" target="_blank" class="btn btn-secondary w-full rounded-full gap-2 font-black italic shadow-lg shadow-secondary/20 h-14">
+             <a :href="waLink" target="_blank" class="btn btn-secondary w-full rounded-full gap-2 font-black italic shadow-lg shadow-secondary/20 h-14">
                 <span class="material-symbols-outlined text-white">whatsapp</span>
                 Kirim Bukti via WhatsApp
              </a>
-             <button @click="navigateTo('/sessions')" class="btn btn-ghost w-full rounded-full font-bold">Lanjut Cari Jastip Lain</button>
+             <button @click="navigateTo(`/orders/${orderComplete}`)" class="btn btn-ghost w-full rounded-full font-bold">Lihat Status Pesanan</button>
           </div>
         </div>
       </div>
@@ -283,6 +283,13 @@ const subtotalNum = computed(() => {
 const subtotal = computed(() => subtotalNum.value.toLocaleString('id-ID'));
 const grandTotal = computed(() => (subtotalNum.value + 5000).toLocaleString('id-ID'));
 
+const waLink = computed(() => {
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  const url = `${origin}/orders/${orderComplete.value}`;
+  const text = `Halo, saya baru saja memesan jastip '${session.value?.title}'.\n\nIni link pesanan saya:\n${url}\n\nBerikut bukti transfernya (jika ada).`;
+  return `https://wa.me/${session.value?.jastiper_phone || ''}?text=${encodeURIComponent(text)}`;
+});
+
 const submitOrder = async () => {
   try {
     isLoading.value = true;
@@ -315,8 +322,8 @@ const submitOrder = async () => {
     });
     localStorage.setItem('jastipcoy_orders', JSON.stringify(savedOrders));
 
-    orderComplete.value = true;
-    navigateTo(`/orders/${res.id}`);
+    // Menyimpan ID pesanan yang baru dibuat agar bisa diakses dari modal
+    orderComplete.value = res.id;
   } catch (error) {
     alert('Gagal memesan.');
   } finally {
