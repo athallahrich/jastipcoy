@@ -1,6 +1,16 @@
 export const useApi = () => {
   const config = useRuntimeConfig();
-  const baseUrl = config.public.apiBase;
+  let baseUrl = config.public.apiBase;
+
+  // Deteksi dinamis: jika diakses dari localhost, paksa pakai API lokal
+  if (process.client) {
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      baseUrl = 'http://localhost/jastiper-engine/api';
+    } else {
+      baseUrl = 'https://jastiper-engine.cleanly.biz.id/api';
+    }
+  }
 
   const fetchApi = async (endpoint, options = {}) => {
     try {
