@@ -74,7 +74,7 @@
                 </div>
                 <div class="form-control">
                   <label class="label font-bold text-on-surface-variant text-sm">Jam Tutup?</label>
-                  <input v-model="form.closing_time" type="time" class="input input-bordered bg-surface focus:border-primary rounded-2xl border-2 font-bold" required />
+                  <input v-model="form.closing_time" type="text" placeholder="Contoh: 23:59" class="input input-bordered bg-surface focus:border-primary rounded-2xl border-2 font-bold" required pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]" title="Format waktu harus 24 jam (HH:mm), contoh: 23:59" />
                 </div>
               </div>
 
@@ -371,6 +371,8 @@ const form = ref({
   jastiper_id: null,
   menu_json: ''
 });
+
+
 
 const selectedLocationName = computed(() => {
     const loc = locationsList.value.find(l => l.id === form.value.location_id);
