@@ -81,7 +81,7 @@
               </div>
             </div>
             <div class="flex gap-2">
-              <a :href="`https://wa.me/${(order.buyer_phone || '').replace(/^0/, '62')}`" target="_blank" class="w-9 h-9 rounded-full flex items-center justify-center bg-emerald-100 text-emerald-600 hover:scale-110 transition-transform p-2 shadow-sm">
+              <a :href="getWaLink(order)" target="_blank" class="w-9 h-9 rounded-full flex items-center justify-center bg-emerald-100 text-emerald-600 hover:scale-110 transition-transform p-2 shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-full h-full">
                   <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.284l-.779 2.853 2.934-.769c.946.514 1.777.822 2.594.822 3.18 0 5.767-2.586 5.767-5.766 0-3.18-2.587-5.766-5.767-5.766zm3.39 8.121c-.131.371-.781.71-1.077.749-.297.039-.571.053-1.636-.371-.84-.336-1.574-.836-2.222-1.484-.648-.648-1.148-1.382-1.484-2.222-.424-1.065-.41-1.339-.371-1.636.039-.296.377-.946.749-1.077.104-.037.218-.052.33-.053l.3.003c.124.004.246.012.366.059.204.079.356.241.446.435.158.343.376.819.387.842.062.13.064.276.009.41-.059.141-.161.271-.256.375l-.261.284c-.1.109-.204.195-.088.396.116.201.516.852 1.109 1.445.593.593 1.244.993 1.445 1.109.131.076.245.05.342-.057l.186-.206c.108-.12.235-.246.39-.3.155-.054.309-.039.463.018.154.057.973.458 1.139.541.166.082.277.123.317.191.04.068.04.394-.091.765z"/>
                   <path d="M12.036 0c-6.627 0-12 5.373-12 12 0 2.159.57 4.186 1.564 5.94l-1.6 5.86 6.001-1.573c1.706.945 3.669 1.473 5.753 1.473 6.627 0 12-5.373 12-12s-5.373-12-12-12zm0 21.8c-2.023 0-3.923-.551-5.556-1.507l-.398-.234-3.57.936.953-3.483-.263-.418c-.997-1.585-1.566-3.468-1.566-5.494 0-5.403 4.397-9.8 9.8-9.8s9.8 4.397 9.8 9.8-4.397 9.8-9.8 9.8z"/>
@@ -300,6 +300,16 @@ const removeOrder = async (orderId) => {
     } catch (e) {
         alert('Gagal menghapus orderan.');
     }
+};
+
+const getWaLink = (order) => {
+  const phone = (order.buyer_phone || '').replace(/^0/, '62');
+  const itemsText = order.details.map(item => `- ${item.quantity}x ${item.item_name}`).join('\n');
+  const totalText = `Total: Rp ${parseInt(order.amount).toLocaleString('id-ID')}`;
+  const linkText = `Link Pesanan: ${window.location.origin}/orders/${order.id}`;
+  
+  const text = `Halo ${order.buyer_name}!\n\nIni detail pesanan kamu:\n${itemsText}\n\n${totalText}\n\n${linkText}`;
+  return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
 };
 
 const copyShareLink = () => {
