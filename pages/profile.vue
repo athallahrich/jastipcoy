@@ -7,10 +7,16 @@
       
       <div v-if="user" class="space-y-2">
         <h1 class="text-4xl font-black text-on-surface font-plus-jakarta italic tracking-tighter">{{ user.name }}</h1>
-        <p class="text-on-surface-variant font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2">
-          <span class="material-symbols-outlined text-sm">shield_person</span>
-          Jastiper ID: #{{ user.id }}
-        </p>
+        <div class="flex flex-col items-center gap-1">
+          <p class="text-on-surface-variant font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined text-sm">shield_person</span>
+            Jastiper ID: #{{ user.id }}
+          </p>
+          <p class="text-on-surface-variant font-bold text-xs flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined text-sm">phone</span>
+            {{ user.phone || 'Nomor HP Belum diisi' }}
+          </p>
+        </div>
       </div>
 
       <div class="grid grid-cols-2 gap-4 pt-4">
@@ -43,6 +49,13 @@
            </div>
            <span class="material-symbols-outlined text-sm">chevron_right</span>
         </div>
+        <div @click="navigateTo('/jastiper/edit-profile')" class="flex justify-between items-center bg-white p-4 rounded-2xl border border-outline-variant/30 cursor-pointer hover:bg-surface-container transition-colors">
+           <div class="flex items-center gap-3">
+             <span class="material-symbols-outlined text-primary">smartphone</span>
+             <span class="font-bold text-sm">Ubah Nomor WhatsApp</span>
+           </div>
+           <span class="material-symbols-outlined text-sm">chevron_right</span>
+        </div>
         <div @click="navigateTo('/jastiper/payment-methods')" class="flex justify-between items-center bg-white p-4 rounded-2xl border border-outline-variant/30 cursor-pointer hover:bg-surface-container transition-colors">
            <div class="flex items-center gap-3">
              <span class="material-symbols-outlined text-primary">wallet</span>
@@ -57,11 +70,23 @@
 
 <script setup>
 const { user, syncUser, logout } = useAuth();
+const { getUser } = useApi();
 
-onMounted(() => {
+onMounted(async () => {
   syncUser();
   if (!user.value) {
     navigateTo('/register');
+  } else {
+    try {
+      const freshUser = await getUser(user.value.id);
+      if (freshUser && freshUser.phone) {
+        // Update user ref and local storage
+        user.value = { ...user.value, phone: freshUser.phone };
+        localStorage.setItem('jastiper_user', JSON.stringify(user.value));
+      }
+    } catch (e) {
+      console.error('Failed to fetch fresh user data:', e);
+    }
   }
 });
 
