@@ -58,89 +58,126 @@
     </div>
 
     <!-- Orders Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <div 
         v-for="order in orders" 
         :key="order.id"
-        class="bg-white rounded-[2.5rem] p-8 shadow-xl border-2 transition-all relative overflow-hidden"
-        :class="order.status === 'completed' ? 'border-emerald-500/20 bg-emerald-50/10' : 'border-outline-variant/20 bg-white'"
+        class="bg-white rounded-[2rem] p-6 shadow-xl shadow-primary-container/5 border border-outline-variant/30 transition-all relative overflow-hidden flex flex-col justify-between hover:shadow-2xl hover:shadow-primary-container/10 group/card"
+        :class="order.status === 'completed' ? 'bg-emerald-50/20 border-emerald-500/30' : ''"
       >
-        <!-- Buyer Header -->
-        <div class="flex justify-between items-start mb-6">
-          <div class="flex items-center gap-4">
-            <div class="w-12 h-12 rounded-full overflow-hidden border-2 border-primary-container bg-surface-container flex items-center justify-center">
-               <span class="material-symbols-outlined text-outline">person</span>
+        <div class="flex flex-col gap-6">
+          <!-- Buyer Header -->
+          <div class="flex justify-between items-start">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-full overflow-hidden border-2 border-primary-container bg-surface-container flex items-center justify-center text-primary shadow-sm">
+                 <span class="material-symbols-outlined text-2xl fill">person</span>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h3 class="font-black text-on-surface text-base leading-none">{{ order.buyer_name }}</h3>
+                  <span class="text-xs font-black text-primary bg-primary-container/50 px-2 py-0.5 rounded-full">#{{ order.id }}</span>
+                </div>
+                <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mt-1">{{ order.buyer_phone }}</p>
+              </div>
             </div>
-            <div>
-              <h3 class="font-black text-on-surface text-lg leading-none">{{ order.buyer_name }}</h3>
-              <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mt-1">{{ order.buyer_phone }}</p>
+            <div class="flex gap-2">
+              <a :href="`https://wa.me/${(order.buyer_phone || '').replace(/^0/, '62')}`" target="_blank" class="w-9 h-9 rounded-full flex items-center justify-center bg-emerald-100 text-emerald-600 hover:scale-110 transition-transform p-2 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-full h-full">
+                  <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.284l-.779 2.853 2.934-.769c.946.514 1.777.822 2.594.822 3.18 0 5.767-2.586 5.767-5.766 0-3.18-2.587-5.766-5.767-5.766zm3.39 8.121c-.131.371-.781.71-1.077.749-.297.039-.571.053-1.636-.371-.84-.336-1.574-.836-2.222-1.484-.648-.648-1.148-1.382-1.484-2.222-.424-1.065-.41-1.339-.371-1.636.039-.296.377-.946.749-1.077.104-.037.218-.052.33-.053l.3.003c.124.004.246.012.366.059.204.079.356.241.446.435.158.343.376.819.387.842.062.13.064.276.009.41-.059.141-.161.271-.256.375l-.261.284c-.1.109-.204.195-.088.396.116.201.516.852 1.109 1.445.593.593 1.244.993 1.445 1.109.131.076.245.05.342-.057l.186-.206c.108-.12.235-.246.39-.3.155-.054.309-.039.463.018.154.057.973.458 1.139.541.166.082.277.123.317.191.04.068.04.394-.091.765z"/>
+                  <path d="M12.036 0c-6.627 0-12 5.373-12 12 0 2.159.57 4.186 1.564 5.94l-1.6 5.86 6.001-1.573c1.706.945 3.669 1.473 5.753 1.473 6.627 0 12-5.373 12-12s-5.373-12-12-12zm0 21.8c-2.023 0-3.923-.551-5.556-1.507l-.398-.234-3.57.936.953-3.483-.263-.418c-.997-1.585-1.566-3.468-1.566-5.494 0-5.403 4.397-9.8 9.8-9.8s9.8 4.397 9.8 9.8-4.397 9.8-9.8 9.8z"/>
+                </svg>
+              </a>
+              <button @click="removeOrder(order.id)" class="w-9 h-9 rounded-full flex items-center justify-center bg-error/10 text-error hover:bg-error hover:text-white transition-all shadow-sm">
+                <span class="material-symbols-outlined text-lg">delete</span>
+              </button>
             </div>
           </div>
-          <div class="flex gap-2">
-            <a :href="`https://wa.me/${order.buyer_phone}`" target="_blank" class="w-10 h-10 rounded-full flex items-center justify-center bg-emerald-100 text-emerald-600 hover:scale-110 transition-transform p-2.5">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-full h-full">
-                <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.284l-.779 2.853 2.934-.769c.946.514 1.777.822 2.594.822 3.18 0 5.767-2.586 5.767-5.766 0-3.18-2.587-5.766-5.767-5.766zm3.39 8.121c-.131.371-.781.71-1.077.749-.297.039-.571.053-1.636-.371-.84-.336-1.574-.836-2.222-1.484-.648-.648-1.148-1.382-1.484-2.222-.424-1.065-.41-1.339-.371-1.636.039-.296.377-.946.749-1.077.104-.037.218-.052.33-.053l.3.003c.124.004.246.012.366.059.204.079.356.241.446.435.158.343.376.819.387.842.062.13.064.276.009.41-.059.141-.161.271-.256.375l-.261.284c-.1.109-.204.195-.088.396.116.201.516.852 1.109 1.445.593.593 1.244.993 1.445 1.109.131.076.245.05.342-.057l.186-.206c.108-.12.235-.246.39-.3.155-.054.309-.039.463.018.154.057.973.458 1.139.541.166.082.277.123.317.191.04.068.04.394-.091.765z"/>
-                <path d="M12.036 0c-6.627 0-12 5.373-12 12 0 2.159.57 4.186 1.564 5.94l-1.6 5.86 6.001-1.573c1.706.945 3.669 1.473 5.753 1.473 6.627 0 12-5.373 12-12s-5.373-12-12-12zm0 21.8c-2.023 0-3.923-.551-5.556-1.507l-.398-.234-3.57.936.953-3.483-.263-.418c-.997-1.585-1.566-3.468-1.566-5.494 0-5.403 4.397-9.8 9.8-9.8s9.8 4.397 9.8 9.8-4.397 9.8-9.8 9.8z"/>
-              </svg>
-            </a>
-            <button @click="removeOrder(order.id)" class="w-10 h-10 rounded-full flex items-center justify-center bg-error/10 text-error hover:bg-error hover:text-white transition-all">
-              <span class="material-symbols-outlined text-xl">delete</span>
-            </button>
-          </div>
-        </div>
 
-        <!-- Items List -->
-        <div class="space-y-3 mb-6">
-          <div v-for="(item, idx) in parseItems(order.items)" :key="idx" class="flex justify-between items-center bg-surface-container/50 p-4 rounded-2xl group">
-             <div class="flex items-center gap-3">
-               <span class="bg-primary text-white text-[10px] font-black px-2 py-1 rounded-lg">{{ item.quantity }}x</span>
-               <div class="flex flex-col">
-                 <span class="text-sm font-bold text-on-surface leading-tight">{{ item.name }}</span>
+          <!-- Items List -->
+          <div class="space-y-3">
+            <div v-for="(item, idx) in order.details" :key="idx" class="flex justify-between items-center bg-surface-container/40 p-4 rounded-2xl group border border-outline-variant/10 hover:border-outline-variant/30 transition-colors">
+               <div class="flex items-center gap-3 flex-grow">
+                 <span class="bg-primary text-white text-xs font-black px-2 py-1 rounded-lg shadow-sm shadow-primary/20">{{ item.quantity }}x</span>
+                 <div class="flex flex-col gap-0.5 min-w-0 flex-grow">
+                   <span class="text-sm font-bold text-on-surface leading-tight">{{ item.item_name }}</span>
+                   <span v-if="item.note" class="text-[10px] italic text-on-surface-variant mt-0.5">Note: {{ item.note }}</span>
+                 </div>
                </div>
-             </div>
-             <div class="flex flex-col items-end">
-                <span class="font-black text-on-surface text-sm">Rp {{ (parseInt(item.price) * item.quantity).toLocaleString('id-ID') }}</span>
-             </div>
-          </div>
-        </div>
-
-        <!-- Payment Info Chip -->
-        <div v-if="order.payment_method_id" class="mb-4 px-4 py-3 bg-primary-container/30 rounded-2xl border border-primary/10 flex items-center justify-between gap-3">
-          <div class="flex items-center gap-3">
-            <span class="material-symbols-outlined text-primary text-sm">payments</span>
-            <div class="text-xs">
-              <span class="font-black text-primary uppercase">{{ order.pm_provider || order.pm_type }}</span>
-              <span class="text-on-surface-variant ml-2 font-bold">{{ order.pm_account_number }}</span>
+               <div class="flex flex-col items-end gap-1 flex-shrink-0">
+                  <div class="flex items-center gap-1">
+                    <span class="text-xs font-bold text-on-surface-variant">@</span>
+                    <input 
+                      type="number"
+                      class="bg-transparent border-b border-dashed border-outline-variant focus:border-primary focus:outline-none w-20 text-right font-bold text-sm text-on-surface"
+                      :value="item.price"
+                      @change="(e) => updateItemPrice(order, idx, e.target.value)"
+                      placeholder="Harga"
+                    />
+                  </div>
+                  <span class="font-black text-primary text-sm">Rp {{ (parseInt(item.price || 0) * item.quantity).toLocaleString('id-ID') }}</span>
+               </div>
             </div>
           </div>
-          
-          <!-- Receipt Preview Trigger -->
-          <div v-if="order.payment_receipt" class="flex gap-2">
-             <button @click="openReceipt(order.payment_receipt)" class="btn btn-primary btn-xs rounded-full normal-case text-[10px] font-black">
-                Lihat Bukti Bayar
-             </button>
-          </div>
         </div>
 
-        <!-- Actions -->
-        <div>
-          <label class="text-[10px] font-black uppercase text-on-surface-variant/50 tracking-widest block mb-2 px-2">Update Status Pesanan</label>
-          <div class="flex gap-3">
-            <select 
-              class="select select-bordered rounded-full flex-1 font-bold text-sm bg-surface-container/30 border-none ring-2 ring-primary/10"
-              :value="order.status || 'pending'"
-              @change="(e) => updateStatus(order.id, e.target.value)"
-            >
-              <option value="pending">Pending (Belum Bayar)</option>
-              <option value="procuring">Procuring (Sedang Dibeli)</option>
-              <option value="ready">Ready (Siap Diambil)</option>
-              <option value="completed">Completed (Selesai)</option>
-            </select>
+        <div class="flex flex-col gap-4 mt-6">
+          <!-- Jastip Fee and Total -->
+          <div class="flex flex-col gap-2 p-4 bg-surface-container/20 rounded-2xl border border-outline-variant/10">
+             <div class="text-xs font-bold text-on-surface-variant flex justify-between w-full">
+               <span>Fee Jastip</span>
+               <span class="font-black">Rp {{ parseInt(session?.fee || 5000).toLocaleString('id-ID') }}</span>
+             </div>
+             <div class="text-base font-black text-on-surface flex justify-between w-full border-t border-outline-variant/20 pt-2 mt-1">
+               <span>Total Tagihan</span>
+               <span class="text-primary">Rp {{ parseInt(order.amount).toLocaleString('id-ID') }}</span>
+             </div>
+          </div>
+
+          <!-- Payment Info Chip -->
+          <div v-if="order.payment_method_id" class="px-4 py-3 bg-primary-container/30 rounded-2xl border border-primary/10 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-primary text-sm">payments</span>
+              <div class="text-xs">
+                <span class="font-black text-primary uppercase">{{ order.pm_provider || order.pm_type }}</span>
+                <span class="text-on-surface-variant ml-2 font-bold">{{ order.pm_account_number }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment Receipt Preview -->
+          <div v-if="order.payment_receipt" class="px-4 py-3 bg-surface-container rounded-2xl border border-outline-variant/20 flex flex-col gap-2">
+             <div class="flex justify-between items-center">
+                <span class="text-xs font-bold text-on-surface-variant">Bukti Pembayaran</span>
+                <span class="badge badge-success badge-sm font-bold rounded-full">Terupload</span>
+             </div>
+             <div class="relative group cursor-pointer" @click="openReceipt(order.payment_receipt)">
+                <img :src="order.payment_receipt" class="w-full rounded-lg max-h-32 object-cover border border-outline-variant/20" />
+                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                   <span class="material-symbols-outlined text-white text-xl">visibility</span>
+                </div>
+             </div>
+          </div>
+
+          <!-- Actions -->
+          <div>
+            <label class="text-[10px] font-black uppercase text-on-surface-variant/50 tracking-widest block mb-2 px-2">Update Status Pesanan</label>
+            <div class="flex gap-3">
+              <select 
+                class="select select-bordered select-sm rounded-full flex-1 font-bold text-sm bg-surface-container/30 border-none ring-2 ring-primary/10 focus:ring-primary"
+                :value="order.status || 'pending'"
+                @change="(e) => updateStatus(order.id, e.target.value)"
+              >
+                <option value="pending">Pending (Belum Bayar)</option>
+                <option value="procuring">Procuring (Sedang Dibeli)</option>
+                <option value="ready">Ready (Siap Diambil)</option>
+                <option value="completed">Completed (Selesai)</option>
+              </select>
+            </div>
           </div>
         </div>
 
         <!-- Status Badge overlay -->
-        <div class="absolute top-0 right-0 p-4 pointer-events-none">
+        <div class="absolute top-0 right-0 pointer-events-none">
            <div :class="['text-[10px] font-black px-4 py-1 rounded-bl-3xl rounded-tr-3xl shadow-sm uppercase tracking-widest', 
                         statusColors[order.status || 'pending'] || 'bg-primary text-white']">
               {{ order.status || 'pending' }}
@@ -148,6 +185,8 @@
         </div>
       </div>
     </div>
+
+
     
     <div v-if="orders.length === 0" class="text-center py-20 bg-white rounded-[3rem] border-2 border-dashed border-outline-variant/30">
         <span class="material-symbols-outlined text-6xl text-outline-variant/30 mb-4">inbox_customize</span>
@@ -170,7 +209,7 @@
 </template>
 
 <script setup>
-const { getSession, getOrders, updateOrderStatus, updateBatchStatus, deleteOrder } = useApi();
+const { getSession, getOrders, updateOrderStatus, updateBatchStatus, deleteOrder, updateSessionMenuPrice } = useApi();
 const route = useRoute();
 
 const session = ref(null);
@@ -198,24 +237,38 @@ const totalSales = computed(() => {
   return orders.value.reduce((acc, o) => acc + parseInt(o.amount), 0);
 });
 
-const parseItems = (itemsStr) => {
-  try {
-    const parsed = JSON.parse(itemsStr || '[]');
-    return parsed.map(p => {
-       if (p.name) return p; // Format baru (sudah ada nama & harga)
-       
-       // Saling silang dengan menu session untuk data lama {id, quantity}
-       const sessionMenu = JSON.parse(session.value?.menu_json || '[]');
-       const item = sessionMenu.find(m => m.id === p.id);
-       return { 
-         ...p, 
-         name: item?.name || 'Item Terhapus', 
-         price: item?.price || 0 
-       };
-    });
-  } catch (e) {
-    return [];
-  }
+
+
+const updateItemPrice = async (order, itemIdx, newPrice) => {
+    try {
+        const items = order.details;
+        const targetItem = items[itemIdx];
+        const priceNum = parseInt(newPrice) || 0;
+        
+        if (confirm(`Ingin mengupdate harga menu "${targetItem.item_name}" menjadi Rp ${priceNum.toLocaleString('id-ID')} untuk KESELURUHAN orderan lain di sesi ini?`)) {
+            await updateSessionMenuPrice(session.value?.id || route.params.id, targetItem.menu_item_id || null, targetItem.item_name, priceNum);
+            await fetchData();
+            alert('Harga berhasil diupdate untuk seluruh orderan!');
+            return;
+        }
+
+        items[itemIdx].price = priceNum;
+        const jastipFee = parseInt(session.value?.fee || 5000);
+        const subtotal = items.reduce((acc, item) => acc + (parseInt(item.price || 0) * item.quantity), 0);
+        const newAmount = subtotal + jastipFee;
+        
+        await useApi().fetchApi('/orders', {
+            method: 'PATCH',
+            body: JSON.stringify({
+                id: order.id,
+                items: items,
+                amount: newAmount
+            })
+        });
+        order.amount = newAmount;
+    } catch (e) {
+        alert('Gagal update harga: ' + (e.message || e));
+    }
 };
 
 const updateStatus = async (orderId, newStatus) => {

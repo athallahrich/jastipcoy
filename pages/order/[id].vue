@@ -34,7 +34,10 @@
             </div>
             <div class="flex-1">
               <h3 class="font-bold text-on-surface text-lg">{{ item.name }}</h3>
-              <p class="text-primary font-black mt-1">Rp {{ parseInt(item.price).toLocaleString('id-ID') }}</p>
+              <p class="text-primary font-black mt-1">
+                 <span v-if="item.price">Rp {{ parseInt(item.price).toLocaleString('id-ID') }}</span>
+                 <span v-else class="text-sm italic text-on-surface-variant">Harga Menyusul</span>
+              </p>
               
               <!-- Quantity Controls -->
               <div v-if="getQuantity(item.id) > 0" class="mt-3 flex items-center gap-3 bg-surface-container rounded-full px-4 py-2 w-fit">
@@ -74,12 +77,20 @@
             <p class="mt-2 text-xs font-bold uppercase tracking-widest">Cart is empty</p>
           </div>
           <div v-else class="space-y-3 border-b-2 border-surface-container pb-6">
-            <div v-for="c in cartDetails" :key="c.id" class="flex justify-between items-center bg-surface-container/50 p-3 rounded-2xl">
-              <div class="flex items-center gap-3">
-                <span class="badge badge-primary font-bold">{{ c.quantity }}x</span>
-                <span class="text-on-surface text-sm font-medium">{{ c.name }}</span>
+            <div v-for="c in cartDetails" :key="c.id" class="flex flex-col bg-surface-container/50 p-3 rounded-2xl gap-2">
+              <div class="flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                  <span class="badge badge-primary font-bold">{{ c.quantity }}x</span>
+                  <span class="text-on-surface text-sm font-medium">{{ c.name }}</span>
+                </div>
+                <span class="font-bold text-on-surface text-sm">Rp {{ c.total }}</span>
               </div>
-              <span class="font-bold text-on-surface text-sm">Rp {{ c.total }}</span>
+              <input 
+                type="text" 
+                placeholder="Catatan (opsional)..."
+                class="input input-xs input-bordered w-full bg-white rounded-lg text-xs font-medium" 
+                v-model="c.cartRef.note" 
+              />
             </div>
           </div>
         </div>
@@ -92,7 +103,7 @@
           </div>
           <div class="flex justify-between text-on-surface-variant text-sm font-medium">
             <span>Jastip Fee (Est.)</span>
-            <span>Rp 5.000</span>
+            <span>Rp {{ parseInt(session?.fee || 5000).toLocaleString('id-ID') }}</span>
           </div>
           <div class="flex justify-between text-primary text-2xl font-black font-plus-jakarta pt-4 border-t-2 border-surface-container">
             <span>Total</span>
@@ -111,36 +122,18 @@
           </div>
           <div class="form-control">
             <label class="label font-bold text-on-surface-variant text-xs">No. WhatsApp</label>
-            <div class="relative">
+            <div class="relative flex items-center">
               <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-sm">call</span>
-              <input type="tel" placeholder="0812xxxxxx" class="input input-bordered input-sm w-full pl-10 bg-surface focus:border-primary rounded-xl" v-model="buyer.phone" required />
+              <div class="absolute left-8 top-1/2 -translate-y-1/2 font-bold text-on-surface-variant text-sm">+62</div>
+              <input type="tel" placeholder="812345..." class="input input-bordered input-sm w-full pl-16 bg-surface focus:border-primary rounded-xl" v-model="buyer.phone" required />
             </div>
-          </div>
-        </div>
-
-        <!-- Payment Methods Selection -->
-        <div v-if="paymentMethods.length > 0" class="space-y-4 pt-4 border-t-2 border-surface-container">
-          <label class="text-xs font-black uppercase tracking-widest text-on-surface-variant px-2">Pilih Pembayaran:</label>
-          <div class="grid grid-cols-1 gap-2">
-            <label 
-              v-for="method in paymentMethods" 
-              :key="method.id"
-              class="flex items-center gap-3 p-3 rounded-2xl border-2 cursor-pointer transition-all hover:bg-primary-container/50"
-              :class="selectedPaymentMethod === method.id ? 'border-primary bg-primary-container' : 'border-surface-container-high'"
-            >
-              <input type="radio" :value="method.id" v-model="selectedPaymentMethod" class="radio radio-primary radio-sm" />
-              <div class="flex-1">
-                <div class="text-[10px] font-black uppercase text-primary/60 leading-none">{{ method.type }}</div>
-                <div class="font-bold text-on-surface text-sm">{{ method.provider }}</div>
-              </div>
-            </label>
           </div>
         </div>
 
         <!-- Action Button -->
         <button 
           class="btn btn-primary w-full h-16 rounded-full text-lg shadow-xl shadow-primary/30 group"
-          :disabled="cart.length === 0 || !buyer.name || !buyer.phone || !selectedPaymentMethod || isLoading"
+          :disabled="cart.length === 0 || !buyer.name || !buyer.phone || isLoading"
           @click="submitOrder"
         >
           <span v-if="isLoading" class="loading loading-spinner"></span>
@@ -150,61 +143,13 @@
       </div>
     </aside>
 
-    <!-- Payment Overlay -->
-    <Teleport to="body">
-      <div v-if="orderComplete" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-        <div class="bg-white rounded-[3rem] w-full max-w-lg p-10 overflow-y-auto max-h-[90vh] space-y-8 shadow-2xl scale-100 transition-transform">
-          <div class="text-center space-y-4">
-            <div class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto shadow-xl shadow-green-200">
-               <span class="material-symbols-outlined text-4xl fill">verified</span>
-            </div>
-            <h2 class="text-3xl font-black text-on-surface font-plus-jakarta italic">Yess! Pesanan Terkirim 🚀</h2>
-            <p class="text-on-surface-variant font-medium">Selesaikan pembayaran agar Jastiper segera memproses pesananmu.</p>
-          </div>
 
-          <!-- Payment Methods -->
-          <div class="space-y-4">
-            <h3 class="text-xs font-black uppercase tracking-widest text-on-surface-variant px-2">Bayar ke Jastiper:</h3>
-            <div v-for="(method, idx) in paymentMethods" :key="idx" class="bg-surface-container/50 rounded-3xl p-6 border border-outline-variant/20 space-y-4">
-               <div class="flex items-center gap-4">
-                  <div class="bg-white p-2 rounded-xl shadow-sm border border-outline-variant/10">
-                    <span class="material-symbols-outlined text-primary text-xl">{{ getIcon(method.type) }}</span>
-                  </div>
-                  <div>
-                    <div class="text-[10px] font-black uppercase text-primary/60 leading-none mb-1">{{ method.type }}</div>
-                    <div class="font-black text-on-surface">{{ method.provider }}</div>
-                  </div>
-               </div>
-               
-               <div v-if="method.type !== 'qr'" class="bg-white p-4 rounded-2xl border-2 border-outline-variant/30 space-y-1">
-                  <div class="text-xs font-bold text-on-surface-variant uppercase tracking-widest opacity-50">Nomor Rekening / HP</div>
-                  <div class="text-xl font-black text-on-surface font-mono">{{ method.account_number }}</div>
-                  <div class="text-xs font-bold text-on-surface-variant">a/n {{ method.account_name }}</div>
-               </div>
-
-               <div v-else class="flex flex-col items-center gap-4">
-                  <img :src="method.qr_data" class="w-full max-w-[200px] aspect-square object-contain bg-white rounded-2xl p-4 shadow-sm border border-outline-variant/20" />
-                  <p class="text-[10px] font-bold text-on-surface-variant text-center opacity-70">Scan QR di atas untuk bayar</p>
-               </div>
-            </div>
-          </div>
-
-          <!-- Actions -->
-          <div class="space-y-3 pt-4">
-             <a :href="waLink" target="_blank" class="btn btn-secondary w-full rounded-full gap-2 font-black italic shadow-lg shadow-secondary/20 h-14">
-                <span class="material-symbols-outlined text-white">whatsapp</span>
-                Kirim Bukti via WhatsApp
-             </a>
-             <button @click="navigateTo(`/orders/${orderComplete}`)" class="btn btn-ghost w-full rounded-full font-bold">Lihat Status Pesanan</button>
-          </div>
-        </div>
-      </div>
-    </Teleport>
   </div>
 </template>
 
 <script setup>
-const { getSession, placeOrder, getPaymentMethods } = useApi();
+const { getSession, placeOrder } = useApi();
+const { user, syncUser } = useAuth();
 const route = useRoute();
 
 const session = ref(null);
@@ -212,9 +157,6 @@ const menu = ref([]);
 const cart = ref([]);
 const buyer = ref({ name: '', phone: '' });
 const isLoading = ref(false);
-const orderComplete = ref(false);
-const paymentMethods = ref([]);
-const selectedPaymentMethod = ref(null);
 
 const fetchData = async () => {
     try {
@@ -227,11 +169,11 @@ const fetchData = async () => {
             menu.value = [];
         }
 
-        // Fetch Jastiper's payment methods from the new table
-        if (res.jastiper_id) {
-            paymentMethods.value = await getPaymentMethods(res.jastiper_id);
-            if (paymentMethods.value.length > 0) {
-                selectedPaymentMethod.value = paymentMethods.value[0].id;
+        // Load cart from localStorage
+        if (process.client) {
+            const savedCart = localStorage.getItem(`jastipcoy_cart_${id}`);
+            if (savedCart) {
+                cart.value = JSON.parse(savedCart);
             }
         }
     } catch (error) {
@@ -239,13 +181,48 @@ const fetchData = async () => {
     }
 };
 
-const getIcon = (type) => {
-    if (type === 'qr') return 'qr_code_2';
-    if (type === 'bank') return 'account_balance';
-    return 'account_balance_wallet';
-};
+onMounted(async () => {
+    await fetchData();
+    syncUser();
+    if (user.value) {
+        buyer.value.name = user.value.name || '';
+        
+        // Try to fetch latest user data to get phone number
+        try {
+            const api = useApi();
+            const userData = await api.getUser(user.value.id);
+            if (userData && userData.phone) {
+                let phone = userData.phone;
+                if (phone.startsWith('62')) {
+                    phone = phone.substring(2);
+                }
+                buyer.value.phone = phone;
+            } else {
+                // Fallback to localStorage
+                let phone = user.value.phone || '';
+                if (phone.startsWith('62')) {
+                    phone = phone.substring(2);
+                }
+                buyer.value.phone = phone;
+            }
+        } catch (e) {
+            console.error('Failed to fetch user data', e);
+            // Fallback to localStorage
+            let phone = user.value.phone || '';
+            if (phone.startsWith('62')) {
+                phone = phone.substring(2);
+            }
+            buyer.value.phone = phone;
+        }
+    }
+});
 
-onMounted(fetchData);
+// Watch cart changes and save to localStorage
+watch(cart, (newCart) => {
+    if (process.client) {
+        localStorage.setItem(`jastipcoy_cart_${route.params.id}`, JSON.stringify(newCart));
+    }
+}, { deep: true });
 
 const getQuantity = (id) => cart.value.find(c => c.id === id)?.quantity || 0;
 
@@ -257,18 +234,20 @@ const updateQuantity = (id, delta) => {
       cart.value = cart.value.filter(c => c.id !== id);
     }
   } else if (delta > 0) {
-    cart.value.push({ id, quantity: 1 });
+    cart.value.push({ id, quantity: 1, note: '' });
   }
 };
 
 const cartDetails = computed(() => {
   return cart.value.map(c => {
     const item = menu.value.find(m => m.id === c.id);
-    const priceNum = parseInt(item.price);
+    const priceNum = parseInt(item.price) || 0;
     return {
       ...item,
       quantity: c.quantity,
-      total: (priceNum * c.quantity).toLocaleString('id-ID')
+      note: c.note,
+      cartRef: c,
+      total: priceNum ? (priceNum * c.quantity).toLocaleString('id-ID') : 'Menyusul'
     };
   });
 });
@@ -276,19 +255,13 @@ const cartDetails = computed(() => {
 const subtotalNum = computed(() => {
     return cart.value.reduce((acc, c) => {
         const item = menu.value.find(m => m.id === c.id);
-        return acc + (parseInt(item.price) * c.quantity);
+        const priceNum = parseInt(item.price) || 0;
+        return acc + (priceNum * c.quantity);
     }, 0);
 });
 
 const subtotal = computed(() => subtotalNum.value.toLocaleString('id-ID'));
-const grandTotal = computed(() => (subtotalNum.value + 5000).toLocaleString('id-ID'));
-
-const waLink = computed(() => {
-  const origin = typeof window !== 'undefined' ? window.location.origin : '';
-  const url = `${origin}/orders/${orderComplete.value}`;
-  const text = `Halo, saya baru saja memesan jastip '${session.value?.title}'.\n\nIni link pesanan saya:\n${url}\n\nBerikut bukti transfernya (jika ada).`;
-  return `https://wa.me/${session.value?.jastiper_phone || ''}?text=${encodeURIComponent(text)}`;
-});
+const grandTotal = computed(() => (subtotalNum.value + parseInt(session.value?.fee || 5000)).toLocaleString('id-ID'));
 
 const submitOrder = async () => {
   try {
@@ -299,17 +272,25 @@ const submitOrder = async () => {
             id: item.id,
             name: item.name,
             price: item.price,
-            quantity: c.quantity
+            quantity: c.quantity,
+            note: c.note || ''
         };
     });
 
+    let phone = buyer.value.phone.trim();
+    if (phone.startsWith('0')) {
+      phone = phone.substring(1);
+    }
+    const formattedPhone = '62' + phone;
+
     const res = await placeOrder({
         session_id: session.value.id,
-        payment_method_id: selectedPaymentMethod.value,
+        payment_method_id: null,
+        status: 'pending',
         buyer_name: buyer.value.name,
-        buyer_phone: buyer.value.phone,
+        buyer_phone: formattedPhone,
         items: JSON.stringify(orderItems),
-        amount: subtotalNum.value + 5000
+        amount: subtotalNum.value + parseInt(session.value?.fee || 5000)
     });
 
     // Save to localStorage
@@ -317,13 +298,16 @@ const submitOrder = async () => {
     savedOrders.push({
         id: res.id,
         session_name: session.value.title,
-        amount: subtotalNum.value + 5000,
+        amount: subtotalNum.value + parseInt(session.value?.fee || 5000),
         status: 'pending'
     });
     localStorage.setItem('jastipcoy_orders', JSON.stringify(savedOrders));
 
-    // Menyimpan ID pesanan yang baru dibuat agar bisa diakses dari modal
-    orderComplete.value = res.id;
+    // Clear cart for this session
+    localStorage.removeItem(`jastipcoy_cart_${session.value.id}`);
+
+    // Langsung navigasi ke halaman status pesanan
+    navigateTo(`/orders/${res.id}`);
   } catch (error) {
     alert('Gagal memesan.');
   } finally {

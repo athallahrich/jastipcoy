@@ -49,7 +49,7 @@
           </div>
         </div>
 
-        <form @submit.prevent="handleLaunch">
+        <form @submit.prevent="handleLaunch" novalidate>
           <ClientOnly>
             <!-- Step 1: Details -->
             <div v-show="currentStep === 1" class="space-y-8">
@@ -63,13 +63,17 @@
                 <input v-model="form.title" type="text" placeholder="Contoh: Starbucks Run Kemang" class="input input-bordered input-lg bg-surface focus:border-primary rounded-2xl border-2 font-bold" required />
               </div>
 
-              <div class="grid grid-cols-2 gap-4">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="form-control">
+                  <label class="label font-bold text-on-surface-variant text-sm">Fee Jastip (Rp)</label>
+                  <input v-model="form.fee" type="number" placeholder="Contoh: 5000" class="input input-bordered bg-surface focus:border-primary rounded-2xl border-2 font-bold" required />
+                </div>
                 <div class="form-control">
                   <label class="label font-bold text-on-surface-variant text-sm">Berapa Slot? (Max)</label>
                   <input v-model="form.total_slots" type="number" class="input input-bordered bg-surface focus:border-primary rounded-2xl border-2 font-bold" required />
                 </div>
                 <div class="form-control">
-                  <label class="label font-bold text-on-surface-variant text-sm">Jam Berapa Tutup?</label>
+                  <label class="label font-bold text-on-surface-variant text-sm">Jam Tutup?</label>
                   <input v-model="form.closing_time" type="time" class="input input-bordered bg-surface focus:border-primary rounded-2xl border-2 font-bold" required />
                 </div>
               </div>
@@ -158,10 +162,14 @@
                        </div>
                     </div>
                  </div>
+                 <button type="button" @click="showAddPaymentModal = true" class="btn btn-outline btn-primary btn-sm w-full border-dashed rounded-full gap-2 mt-4">
+                   <span class="material-symbols-outlined">add</span>
+                   Tambah Metode Lain
+                 </button>
               </div>
               <div v-else class="text-center py-10 bg-error/5 rounded-3xl border-2 border-dashed border-error/20">
                  <p class="text-error font-bold mb-2">Kamu belum menambahkan metode pembayaran!</p>
-                 <button type="button" @click="navigateTo('/jastiper/payment-methods')" class="btn btn-error btn-sm rounded-full">Atur Sekarang</button>
+                 <button type="button" @click="showAddPaymentModal = true" class="btn btn-error btn-sm rounded-full">Tambah Sekarang</button>
               </div>
             </div>
 
@@ -184,7 +192,7 @@
 
           <div class="flex gap-4 mt-12 pt-8 border-t border-outline-variant/30">
             <button v-if="currentStep > 1" type="button" @click="currentStep--" class="btn btn-ghost rounded-full px-8 font-bold">Kembali</button>
-            <button v-if="currentStep < 4" type="button" @click="currentStep++" :disabled="currentStep === 3 && paymentMethods.length === 0" class="btn btn-primary flex-1 rounded-full px-8 font-bold">Lanjut</button>
+            <button v-if="currentStep < 4" type="button" @click="nextStep" :disabled="currentStep === 3 && paymentMethods.length === 0" class="btn btn-primary flex-1 rounded-full px-8 font-bold">Lanjut</button>
             <button v-else type="submit" :disabled="isLoading" class="btn btn-primary flex-1 rounded-full px-8 font-black text-lg italic shadow-xl shadow-primary/30">
               <span v-if="isLoading" class="loading loading-spinner"></span>
               <span v-else>LUNCURKAN JASTIP! 🚀</span>
@@ -192,6 +200,44 @@
           </div>
         </form>
       </div>
+
+      <!-- Add Payment Modal -->
+      <Teleport to="body">
+        <div v-if="showAddPaymentModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div class="bg-white rounded-[2rem] w-full max-w-md p-8 space-y-6 shadow-2xl">
+            <h3 class="text-2xl font-bold text-on-surface">Tambah Pembayaran</h3>
+            
+            <div class="space-y-4">
+               <select v-model="newPayment.type" class="select select-bordered w-full rounded-xl font-bold">
+                   <option value="bank">Transfer Bank</option>
+                   <option value="wallet">E-Wallet</option>
+                   <option value="qr">QR Code / QRIS</option>
+               </select>
+               
+               <template v-if="newPayment.type !== 'qr'">
+                  <input v-model="newPayment.provider" placeholder="Nama Bank/E-Wallet (e.g. BCA)" class="input input-bordered w-full rounded-xl" />
+                  <input v-model="newPayment.account_name" placeholder="Atas Nama" class="input input-bordered w-full rounded-xl" />
+                  <input v-model="newPayment.account_number" placeholder="Nomor Rekening/HP" class="input input-bordered w-full rounded-xl" />
+               </template>
+               <template v-else>
+                  <input v-model="newPayment.provider" placeholder="Nama Layanan (e.g. QRIS)" class="input input-bordered w-full rounded-xl" />
+                  <div class="border-2 border-dashed border-outline-variant/30 rounded-xl p-4 text-center space-y-2">
+                     <img v-if="newPayment.qr_data" :src="newPayment.qr_data" class="h-32 mx-auto object-contain" />
+                     <input type="file" accept="image/*" class="file-input file-input-bordered file-input-sm w-full" @change="handleQrUpload" />
+                  </div>
+               </template>
+            </div>
+            
+            <div class="flex gap-3 pt-2">
+               <button type="button" @click="showAddPaymentModal = false" class="btn btn-ghost flex-1 rounded-full">Batal</button>
+               <button type="button" @click="saveNewPayment" :disabled="isSavingPayment" class="btn btn-primary flex-1 rounded-full">
+                  <span v-if="isSavingPayment" class="loading loading-spinner"></span>
+                  Simpan
+               </button>
+            </div>
+          </div>
+        </div>
+      </Teleport>
     </div>
   </div>
 </template>
@@ -201,7 +247,7 @@ definePageMeta({
   middleware: 'auth-jastiper'
 });
 
-const { getLocations, createLocation, createSession } = useApi();
+const { getLocations, createLocation, createSession, addPaymentMethod, getPaymentMethods } = useApi();
 const currentStep = ref(1);
 const isLoading = ref(false);
 const successData = ref(null);
@@ -252,7 +298,7 @@ const loadPaymentMethods = async () => {
     try {
         const user = JSON.parse(localStorage.getItem('jastiper_user'));
         if (user) {
-            paymentMethods.value = await useApi().getPaymentMethods(user.id);
+            paymentMethods.value = await getPaymentMethods(user.id);
         }
     } catch (e) {
         console.error('Failed to load payment methods');
@@ -265,17 +311,51 @@ const getIcon = (type) => {
     return 'account_balance_wallet';
 };
 
+const showAddPaymentModal = ref(false);
+const isSavingPayment = ref(false);
+const newPayment = ref({ type: 'bank', provider: '', account_name: '', account_number: '', qr_data: null });
+
+const handleQrUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            newPayment.value.qr_data = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+};
+
+const saveNewPayment = async () => {
+    try {
+        if (!newPayment.value.provider) return alert('Nama Bank/Provider wajib diisi!');
+        isSavingPayment.value = true;
+        const user = JSON.parse(localStorage.getItem('jastiper_user'));
+        const payload = { ...newPayment.value, user_id: user.id };
+        await addPaymentMethod(payload);
+        
+        paymentMethods.value = await getPaymentMethods(user.id);
+        
+        newPayment.value = { type: 'bank', provider: '', account_name: '', account_number: '', qr_data: null };
+        showAddPaymentModal.value = false;
+    } catch (e) {
+        alert('Gagal menyimpan metode pembayaran');
+    } finally {
+        isSavingPayment.value = false;
+    }
+};
+
 onMounted(() => {
     loadLocations();
     loadPaymentMethods();
 });
 
 const menuItems = ref([
-  { id: 1, name: '', price: '' }
+  { id: Date.now(), name: '', price: '' }
 ]);
 
 const addItem = () => {
-    menuItems.value.push({ id: Date.now(), name: '', price: '' });
+    menuItems.value.push({ id: Date.now() + Math.floor(Math.random() * 1000), name: '', price: '' });
 };
 
 const removeItem = (idx) => {
@@ -284,9 +364,9 @@ const removeItem = (idx) => {
 
 const form = ref({
   title: '',
-  total_slots: 5,
-  slots_available: 5,
-  closing_time: '12:00',
+  total_slots: '',
+  closing_time: '',
+  fee: 5000,
   location_id: 1,
   jastiper_id: null,
   menu_json: ''
@@ -298,6 +378,25 @@ const selectedLocationName = computed(() => {
 });
 
 const progressWidth = computed(() => `${((currentStep.value - 1) / (steps.length - 1)) * 100}%`);
+
+const nextStep = () => {
+    if (currentStep.value === 1) {
+        if (!form.value.title) return document.querySelector('input[type="text"]').reportValidity();
+        if (!form.value.fee) return document.querySelectorAll('input[type="number"]')[0].reportValidity();
+        if (!form.value.total_slots) return document.querySelectorAll('input[type="number"]')[1].reportValidity();
+        if (!form.value.closing_time) return document.querySelector('input[type="time"]').reportValidity();
+    }
+    if (currentStep.value === 2) {
+        for (const item of menuItems.value) {
+            if (!item.name) {
+                return alert('Pastikan semua menu sudah terisi Nama barangnya!');
+            }
+        }
+    }
+    if (currentStep.value < 4) {
+        currentStep.value++;
+    }
+};
 
 const shareLink = computed(() => {
   if (!successData.value) return '';

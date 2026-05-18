@@ -39,6 +39,21 @@
               />
             </div>
           </div>
+
+          <div class="form-control w-full">
+            <label class="label"><span class="label-text font-black text-on-surface-variant uppercase tracking-widest text-xs">Nomor WhatsApp</span></label>
+            <div class="relative flex items-center">
+              <span class="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-primary text-2xl z-10">call</span>
+              <div class="absolute left-14 top-1/2 -translate-y-1/2 font-bold text-on-surface-variant z-10">+62</div>
+              <input 
+                v-model="form.phone"
+                type="tel" 
+                placeholder="812345..."
+                class="input input-lg input-bordered w-full pl-24 bg-surface-container-lowest border-2 focus:border-primary transition-all rounded-[1.5rem] font-bold"
+                required 
+              />
+            </div>
+          </div>
         </div>
 
         <div class="pt-4">
@@ -69,13 +84,27 @@ const isLoading = ref(false);
 
 const form = ref({
   name: '',
-  pin: ''
+  pin: '',
+  phone: ''
 });
 
 const handleRegister = async () => {
   try {
     isLoading.value = true;
-    const res = await registerJastiper(form.value);
+    
+    // Format phone number: remove leading '0' if user typed it, and prepend '62'
+    let phone = form.value.phone.trim();
+    if (phone.startsWith('0')) {
+      phone = phone.substring(1);
+    }
+    const formattedPhone = '62' + phone;
+    
+    const payload = {
+      ...form.value,
+      phone: formattedPhone
+    };
+    
+    const res = await registerJastiper(payload);
     
     // Save user info and update reactive state
     login(res.user);

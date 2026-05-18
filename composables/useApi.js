@@ -11,7 +11,10 @@ export const useApi = () => {
           ...options.headers,
         },
       });
-      if (!response.ok) throw new Error('API request failed');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'API request failed');
+      }
       return await response.json();
     } catch (error) {
       console.error('API Error:', error);
@@ -33,6 +36,7 @@ export const useApi = () => {
     updateOrderStatus: (id, status) => fetchApi('/orders', { method: 'PATCH', body: JSON.stringify({ id, status }) }),
     deleteOrder: (id) => fetchApi(`/orders?id=${id}`, { method: 'DELETE' }),
     updateBatchStatus: (sessionId, status) => fetchApi('/update_orders_status', { method: 'POST', body: JSON.stringify({ session_id: sessionId, status }) }),
+    updateSessionMenuPrice: (sessionId, itemId, itemName, newPrice) => fetchApi('/update_session_menu_price', { method: 'POST', body: JSON.stringify({ session_id: sessionId, item_id: itemId, item_name: itemName, new_price: newPrice }) }),
     getDashboardStats: (jastiperId) => fetchApi(`/dashboard_stats?jastiper_id=${jastiperId}`),
     updateProfile: (data) => fetchApi('/update_profile', { method: 'POST', body: JSON.stringify(data) }),
     getUser: (id) => fetchApi(`/user?id=${id}`),

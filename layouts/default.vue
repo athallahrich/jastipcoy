@@ -57,7 +57,7 @@
     </header>
 
     <!-- Main Content -->
-    <main class="flex-grow pt-24 pb-32 px-4 max-w-7xl mx-auto w-full">
+    <main class="flex-grow pt-24 pb-12 px-4 max-w-7xl mx-auto w-full">
       <slot />
     </main>
 
