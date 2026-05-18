@@ -1,6 +1,6 @@
 export const useApi = () => {
   const config = useRuntimeConfig();
-  const baseUrl = 'http://localhost/jastiper-engine/api';
+  const baseUrl = config.public.apiBase;
 
   const fetchApi = async (endpoint, options = {}) => {
     try {
