@@ -12,7 +12,7 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   runtimeConfig: {
     public: {
-      apiBase: 'http://localhost/jastiper-engine/api'
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost/jastiper-engine/api'
     }
   },
   devServer: {
