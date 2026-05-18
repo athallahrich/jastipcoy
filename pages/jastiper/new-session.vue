@@ -426,8 +426,13 @@ const handleLaunch = async () => {
     successData.value = res;
     
   } catch (error) {
-    alert('Oops! Gagal meluncurkan jastip. Pastikan kamu sudah daftar ya!');
-    navigateTo('/register');
+    console.error(error);
+    if (error.message === 'User not registered') {
+      alert('Oops! Kamu belum terdaftar. Silakan daftar atau masuk dulu ya!');
+      navigateTo('/register');
+    } else {
+      alert('Oops! Gagal meluncurkan jastip. Terjadi kesalahan pada server, silakan coba lagi.');
+    }
   } finally {
     isLoading.value = false;
   }
