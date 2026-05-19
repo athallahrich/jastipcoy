@@ -56,5 +56,6 @@ export const useApi = () => {
     addPaymentMethod: (data) => fetchApi('/payment_methods', { method: 'POST', body: JSON.stringify(data) }),
     deletePaymentMethod: (id) => fetchApi(`/payment_methods?id=${id}`, { method: 'DELETE' }),
     uploadReceipt: (data) => fetchApi('/upload_receipt', { method: 'POST', body: JSON.stringify(data) }),
+    submitFeedback: (data) => fetchApi('/feedback', { method: 'POST', body: JSON.stringify(data) }),
   };
 };

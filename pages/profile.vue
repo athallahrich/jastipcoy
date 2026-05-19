@@ -63,6 +63,13 @@
            </div>
            <span class="material-symbols-outlined text-sm">chevron_right</span>
         </div>
+        <div @click="navigateTo('/feedback')" class="flex justify-between items-center bg-white p-4 rounded-2xl border border-outline-variant/30 cursor-pointer hover:bg-surface-container transition-colors mt-4">
+           <div class="flex items-center gap-3">
+             <span class="material-symbols-outlined text-secondary">chat_bubble</span>
+             <span class="font-bold text-sm">Beri Masukan Aplikasi</span>
+           </div>
+           <span class="material-symbols-outlined text-sm">chevron_right</span>
+        </div>
       </div>
     </div>
   </div>
