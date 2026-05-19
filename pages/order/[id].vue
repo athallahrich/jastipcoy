@@ -133,13 +133,15 @@
         <!-- Action Button -->
         <button 
           class="btn btn-primary w-full h-16 rounded-full text-lg shadow-xl shadow-primary/30 group"
-          :disabled="cart.length === 0 || !buyer.name || !buyer.phone || isLoading"
+          :disabled="cart.length === 0 || !buyer.name || !buyer.phone || isLoading || isPast || isClosed"
           @click="submitOrder"
         >
           <span v-if="isLoading" class="loading loading-spinner"></span>
+          <span v-else-if="isPast || isClosed">Session Closed</span>
           <span v-else>Place Order</span>
-          <span class="material-symbols-outlined group-hover:translate-x-2 transition-transform">send</span>
+          <span v-if="!isPast && !isClosed" class="material-symbols-outlined group-hover:translate-x-2 transition-transform">send</span>
         </button>
+        <p v-if="isPast || isClosed" class="text-center text-error text-sm font-bold mt-2">Sesi ini sudah ditutup, tidak bisa menerima order baru.</p>
       </div>
     </aside>
 
@@ -262,6 +264,21 @@ const subtotalNum = computed(() => {
 
 const subtotal = computed(() => subtotalNum.value.toLocaleString('id-ID'));
 const grandTotal = computed(() => (subtotalNum.value + parseInt(session.value?.fee || 5000)).toLocaleString('id-ID'));
+
+const isPast = computed(() => {
+    if (!session.value?.closing_time) return false;
+    const parts = session.value.closing_time.split(/[-T :]/);
+    if (parts.length >= 5) {
+        const closingDate = new Date(parts[0], parts[1] - 1, parts[2], parts[3], parts[4], parts[5] || 0);
+        return closingDate.getTime() < new Date().getTime();
+    }
+    return false;
+});
+
+const isClosed = computed(() => {
+    const status = session.value?.status?.toLowerCase();
+    return status === 'closed' || status === 'close';
+});
 
 const submitOrder = async () => {
   try {

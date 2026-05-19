@@ -62,12 +62,13 @@
         >
           <div class="flex justify-between items-start mb-6">
             <div>
-              <div class="badge badge-success badge-sm gap-1 mb-2 font-bold text-[10px]">
+              <div :class="['badge badge-sm gap-1 mb-2 font-bold text-[10px]', session.status === 'closed' ? 'badge-error' : 'badge-success']">
                 <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
                 {{ session.status.toUpperCase() }}
               </div>
               <h3 class="text-2xl font-bold text-on-surface leading-tight">{{ session.title }}</h3>
               <p class="text-sm text-on-surface-variant">{{ session.area }}</p>
+              <p class="text-[10px] font-bold text-on-surface-variant uppercase mt-1">Closes at: {{ session.closing_time ? new Date(session.closing_time.replace(' ', 'T')).toLocaleString('id-ID', {day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'}) : '-' }}</p>
             </div>
           </div>
 
@@ -103,7 +104,8 @@
           </div>
 
           <div class="mt-6 flex gap-2">
-            <button class="btn btn-primary flex-1 rounded-full btn-sm">Manage Orders</button>
+            <button class="btn btn-primary flex-1 rounded-full btn-sm" @click.stop="navigateTo(`/jastiper/manage/${session.id}`)">Manage Orders</button>
+            <button v-if="session.status !== 'closed'" class="btn btn-error flex-1 rounded-full btn-sm text-white" @click.stop="closeSession(session.id)">Tutup Sesi</button>
           </div>
         </div>
         <div v-if="activeSessions.length === 0" class="col-span-full text-center py-20 bg-white rounded-[2rem] border-2 border-dashed border-outline-variant/30">
@@ -155,7 +157,7 @@
 </template>
 
 <script setup>
-const { getDashboardStats, getSessions } = useApi();
+const { getDashboardStats, getSessions, updateSessionStatus } = useApi();
 const stats = ref(null);
 const activeSessions = ref([]);
 const currentUser = ref(null);
@@ -175,15 +177,29 @@ onMounted(async () => {
     
     // Fetch all active sessions for this jastiper
     const sessions = await getSessions(`?jastiper_id=${user.id}`);
-    activeSessions.value = sessions.map(s => ({
-      id: s.id,
-      title: s.title,
-      area: s.location_name || 'Assigned Area',
-      orderCount: s.total_slots - s.slots_available,
-      capacity: Math.round(((s.total_slots - s.slots_available) / s.total_slots) * 100),
-      slotsLeft: s.slots_available,
-      status: s.status
-    }));
+    activeSessions.value = sessions.map(s => {
+      let isPast = false;
+      if (s.closing_time) {
+        const parts = s.closing_time.split(/[-T :]/);
+        if (parts.length >= 5) {
+          const closingDate = new Date(parts[0], parts[1] - 1, parts[2], parts[3], parts[4], parts[5] || 0);
+          isPast = closingDate.getTime() < new Date().getTime();
+        }
+      }
+      const statusLower = s.status ? s.status.toLowerCase() : '';
+      const isClosedInDB = statusLower === 'closed' || statusLower === 'close';
+      const displayStatus = (isPast || isClosedInDB) ? 'closed' : 'open';
+      return {
+        id: s.id,
+        title: s.title,
+        area: s.location_name || 'Assigned Area',
+        orderCount: s.total_slots - s.slots_available,
+        capacity: Math.round(((s.total_slots - s.slots_available) / s.total_slots) * 100),
+        slotsLeft: s.slots_available,
+        status: displayStatus,
+        closing_time: s.closing_time
+      };
+    });
 
   } catch (error) {
     console.error('Failed to fetch dashboard data', error);
@@ -191,4 +207,42 @@ onMounted(async () => {
     isLoading.value = false;
   }
 });
+
+const closeSession = async (sessionId) => {
+  if (confirm('Yakin ingin menutup sesi jastip ini?')) {
+    try {
+      await updateSessionStatus(sessionId, 'closed');
+      // Refresh data
+      const user = JSON.parse(localStorage.getItem('jastiper_user'));
+      stats.value = await getDashboardStats(user.id);
+      const sessions = await getSessions(`?jastiper_id=${user.id}`);
+      activeSessions.value = sessions.map(s => {
+        let isPast = false;
+        if (s.closing_time) {
+          const parts = s.closing_time.split(/[-T :]/);
+          if (parts.length >= 5) {
+            const closingDate = new Date(parts[0], parts[1] - 1, parts[2], parts[3], parts[4], parts[5] || 0);
+            isPast = closingDate.getTime() < new Date().getTime();
+          }
+        }
+        const statusLower = s.status ? s.status.toLowerCase() : '';
+        const isClosedInDB = statusLower === 'closed' || statusLower === 'close';
+        const displayStatus = (isPast || isClosedInDB) ? 'closed' : 'open';
+        return {
+          id: s.id,
+          title: s.title,
+          area: s.location_name || 'Assigned Area',
+          orderCount: s.total_slots - s.slots_available,
+          capacity: Math.round(((s.total_slots - s.slots_available) / s.total_slots) * 100),
+          slotsLeft: s.slots_available,
+          status: displayStatus,
+          closing_time: s.closing_time
+        };
+      });
+      alert('Sesi berhasil ditutup');
+    } catch (error) {
+      alert('Gagal menutup sesi: ' + error.message);
+    }
+  }
+};
 </script>

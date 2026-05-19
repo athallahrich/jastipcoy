@@ -73,8 +73,8 @@
                   <input v-model="form.total_slots" type="number" class="input input-bordered bg-surface focus:border-primary rounded-2xl border-2 font-bold" required />
                 </div>
                 <div class="form-control">
-                  <label class="label font-bold text-on-surface-variant text-sm">Jam Tutup?</label>
-                  <input v-model="form.closing_time" type="text" placeholder="Contoh: 23:59" class="input input-bordered bg-surface focus:border-primary rounded-2xl border-2 font-bold" required pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]" title="Format waktu harus 24 jam (HH:mm), contoh: 23:59" />
+                  <label class="label font-bold text-on-surface-variant text-sm">Batas Waktu Order?</label>
+                  <input v-model="form.closing_time" type="datetime-local" class="input input-bordered bg-surface focus:border-primary rounded-2xl border-2 font-bold" required />
                 </div>
               </div>
 
@@ -386,7 +386,7 @@ const nextStep = () => {
         if (!form.value.title) return document.querySelector('input[type="text"]').reportValidity();
         if (!form.value.fee) return document.querySelectorAll('input[type="number"]')[0].reportValidity();
         if (!form.value.total_slots) return document.querySelectorAll('input[type="number"]')[1].reportValidity();
-        if (!form.value.closing_time) return document.querySelector('input[type="time"]').reportValidity();
+        if (!form.value.closing_time) return document.querySelector('input[type="datetime-local"]').reportValidity();
     }
     if (currentStep.value === 2) {
         for (const item of menuItems.value) {

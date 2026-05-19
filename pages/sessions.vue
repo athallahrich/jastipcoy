@@ -30,8 +30,8 @@
           :initial="{ opacity: 0, y: 20 }"
           :enter="{ opacity: 1, y: 0 }"
           v-motion-hover="{ y: -10 }"
-          class="card bg-white shadow-xl hover:shadow-2xl transition-all border border-outline-variant/20 cursor-pointer"
-          @click="navigateTo(`/order/${session.id}`)"
+          :class="['card bg-white shadow-xl transition-all border cursor-pointer', (session.status === 'closed' || session.isPast) ? 'opacity-70 grayscale-[0.3] border-outline-variant/50 cursor-not-allowed' : 'hover:shadow-2xl border-outline-variant/20']"
+          @click="(!session.isPast && session.status !== 'closed') ? navigateTo(`/order/${session.id}`) : null"
         >
           <div class="card-body p-6">
             <!-- Card Header -->
@@ -43,14 +43,20 @@
               </div>
               <div class="flex-grow">
                 <h3 class="font-bold text-on-surface">{{ session.jastiper.name }}</h3>
-                <div class="flex items-center gap-1 text-xs text-on-surface-variant">
-                  <span class="material-symbols-outlined text-[14px] text-warning fill">star</span>
-                  {{ session.jastiper.rating }}
+                <div class="flex items-center gap-3 text-xs text-on-surface-variant">
+                  <div class="flex items-center gap-1">
+                    <span class="material-symbols-outlined text-warning fill" style="font-size: 12px !important;">star</span>
+                    {{ session.jastiper.rating }}
+                  </div>
+                  <div v-if="session.jastiper_phone" class="flex items-center gap-1 font-bold">
+                    <span class="material-symbols-outlined" style="font-size: 12px !important;">call</span>
+                    {{ session.jastiper_phone }}
+                  </div>
                 </div>
               </div>
-              <div :class="['badge badge-sm gap-1', session.status === 'Closing Soon' ? 'badge-warning' : 'badge-ghost bg-surface-variant']">
-                <span class="material-symbols-outlined text-[14px]">{{ session.statusIcon }}</span>
-                {{ session.status }}
+              <div :class="['badge badge-sm gap-1 uppercase font-bold', session.status === 'closed' ? 'badge-error text-white' : (session.status === 'Closing Soon' ? 'badge-warning' : 'badge-success text-white')]">
+                <span class="material-symbols-outlined" style="font-size: 10px !important;">{{ session.statusIcon }}</span>
+                {{ session.status === 'closed' ? 'Closed' : 'Open' }}
               </div>
             </div>
 
@@ -79,13 +85,17 @@
               </div>
               <div class="text-right">
                 <div class="text-[10px] text-on-surface-variant uppercase font-bold">Closes at</div>
-                <div class="font-bold text-on-surface">{{ session.closingTime }}</div>
+                <div class="font-bold text-on-surface text-sm">{{ session.closing_time ? new Date(session.closing_time).toLocaleString('id-ID', {day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'}) : '-' }}</div>
               </div>
             </div>
           </div>
           <!-- Overlay for FULL state -->
-          <div v-if="session.slotsLeft === 0" class="absolute inset-0 bg-white/60 backdrop-blur-[2px] rounded-[inherit] z-10 flex items-center justify-center pointer-events-none">
+          <div v-if="session.slotsLeft === 0 && session.status !== 'closed'" class="absolute inset-0 bg-white/60 backdrop-blur-[2px] rounded-[inherit] z-10 flex items-center justify-center pointer-events-none">
             <div class="bg-outline text-white px-6 py-2 rounded-full font-black text-sm tracking-widest shadow-lg -rotate-12">FULL HOUSE</div>
+          </div>
+          <!-- Overlay for CLOSED state -->
+          <div v-if="session.status === 'closed' || session.isPast" class="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
+            <div class="bg-error text-white px-6 py-2 rounded-full font-black text-sm tracking-widest shadow-lg -rotate-12 translate-y-10">SESSION CLOSED</div>
           </div>
         </div>
       </div>
@@ -128,12 +138,36 @@ onMounted(async () => {
     sessions.value = Array.isArray(res) ? res : [res].filter(s => s != null);
     
     // map some UI fields that might be missing from DB
-    sessions.value = sessions.value.map(s => ({
-      ...s,
-      statusIcon: s.status === 'Closing Soon' ? 'timer' : 'shopping_bag',
-      jastiper: s.jastiper || { name: 'Jastiper', rating: 5.0, avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${s.id}` },
-      mainItem: s.mainItem || { image: 'https://images.unsplash.com/photo-1541167760496-162955ed8a9f?w=200&h=200&fit=crop' }
-    }));
+    sessions.value = sessions.value.map(s => {
+      // Check if time has passed
+      let isPast = false;
+      if (s.closing_time) {
+        const parts = s.closing_time.split(/[-T :]/);
+        if (parts.length >= 5) {
+          const closingDate = new Date(parts[0], parts[1] - 1, parts[2], parts[3], parts[4], parts[5] || 0);
+          isPast = closingDate.getTime() < new Date().getTime();
+        }
+      }
+      
+      const statusLower = s.status ? s.status.toLowerCase() : '';
+      const isClosedInDB = statusLower === 'closed' || statusLower === 'close';
+      const displayStatus = (isPast || isClosedInDB) ? 'closed' : 'open';
+      
+      return {
+        ...s,
+        status: displayStatus,
+        isPast: isPast,
+        statusIcon: displayStatus === 'closed' ? 'block' : (displayStatus === 'Closing Soon' ? 'timer' : 'shopping_bag'),
+        jastiper: { 
+          name: s.jastiper_name || 'Jastiper', 
+          rating: 5.0, 
+          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${s.id}` 
+        },
+        mainItem: s.mainItem || { image: 'https://images.unsplash.com/photo-1541167760496-162955ed8a9f?w=200&h=200&fit=crop' },
+        slotsLeft: s.slots_available,
+        totalSlots: s.total_slots
+      };
+    });
   } catch (error) {
     console.error('Failed to fetch sessions');
   } finally {

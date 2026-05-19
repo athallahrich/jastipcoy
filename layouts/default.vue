@@ -23,11 +23,11 @@
             </NuxtLink>
             <NuxtLink 
               v-if="user"
-              to="/jastiper/payment-methods" 
+              to="/jastiper/dashboard" 
               class="btn btn-ghost btn-sm h-10 rounded-full font-bold px-4 gap-2 text-primary hover:bg-primary/10 transition-all border-2 border-primary/20"
             >
-              <span class="material-symbols-outlined text-sm">payments</span>
-              METODE PEMBAYARAN
+              <span class="material-symbols-outlined text-sm">dashboard</span>
+              DASHBOARD JASTIPER
             </NuxtLink>
             <button 
               v-if="!user"
