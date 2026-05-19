@@ -151,7 +151,8 @@ onMounted(async () => {
       
       const statusLower = s.status ? s.status.toLowerCase() : '';
       const isClosedInDB = statusLower === 'closed' || statusLower === 'close';
-      const displayStatus = (isPast || isClosedInDB) ? 'closed' : 'open';
+      const isSlotsEmpty = s.slots_available <= 0;
+      const displayStatus = (isPast || isClosedInDB || isSlotsEmpty) ? 'closed' : 'open';
       
       return {
         ...s,
