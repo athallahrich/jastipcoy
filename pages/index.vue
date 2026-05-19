@@ -9,9 +9,6 @@
     <ClientOnly>
       <!-- Illustration -->
       <div 
-        v-motion
-        :initial="{ scale: 0.8, opacity: 0 }"
-        :enter="{ scale: 1, opacity: 1, transition: { type: 'spring', damping: 10 } }"
         class="relative w-64 h-64 mx-auto mb-12 rounded-[3.5rem] overflow-hidden bg-primary-container shadow-2xl shadow-primary/20 rotate-3"
       >
         <img 
@@ -29,7 +26,6 @@
         <button 
           v-for="loc in locations" 
           :key="loc.id"
-          v-motion-hover="{ scale: 1.05, rotate: 1 }"
           class="group bg-white p-8 rounded-[3rem] shadow-xl hover:shadow-2xl hover:shadow-primary/20 border-4 border-transparent hover:border-primary transition-all text-center flex flex-col items-center gap-4"
           :class="{ 'border-primary shadow-2xl shadow-primary/10': loc.selected }"
           @click="selectLocation(loc)"
@@ -66,7 +62,7 @@
         </button>
 
         <ClientOnly>
-          <div v-if="isAddingSpot" v-motion :initial="{ height: 0, opacity: 0 }" :enter="{ height: 'auto', opacity: 1 }" class="mt-10 space-y-8 overflow-hidden text-left">
+          <div v-if="isAddingSpot" class="mt-10 space-y-8 overflow-hidden text-left">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div class="form-control">
                 <label class="label"><span class="label-text font-bold text-on-surface-variant">Nama Lokasi</span></label>
@@ -88,7 +84,6 @@
       <!-- Become Jastiper CTA -->
       <ClientOnly>
         <button 
-          v-motion-hover="{ y: -5 }"
           class="w-full bg-secondary text-white p-8 rounded-[3rem] flex items-center justify-between transition-all shadow-xl shadow-secondary/20 group"
           @click="navigateTo(user ? '/jastiper/dashboard' : '/register')"
         >

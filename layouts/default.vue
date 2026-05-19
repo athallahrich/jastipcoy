@@ -1,5 +1,25 @@
 <template>
   <div class="flex flex-col min-h-screen">
+    <!-- BottomNavBar -->
+    <nav class="!fixed !bottom-0 !left-0 !w-full z-[100] flex justify-around items-center bg-white pb-6 pt-2 px-4 rounded-t-[40px] border-t-4 border-primary/5 shadow-[0_-10px_40px_rgba(255,183,206,0.2)]">
+      <NuxtLink to="/" class="flex flex-col items-center justify-center p-2 transition-all" :class="{ 'text-primary': $route.path === '/' }">
+        <span class="material-symbols-outlined">home</span>
+        <span class="text-[10px] font-bold uppercase tracking-widest mt-1">Home</span>
+      </NuxtLink>
+      <NuxtLink to="/jastiper/dashboard" class="flex flex-col items-center justify-center p-2 transition-all" :class="{ 'text-primary': $route.path.startsWith('/jastiper/dashboard') }">
+        <span class="material-symbols-outlined">shopping_cart</span>
+        <span class="text-[10px] font-bold uppercase tracking-widest mt-1">My Jastip</span>
+      </NuxtLink>
+      <NuxtLink to="/orders" class="flex flex-col items-center justify-center p-2 transition-all" :class="{ 'text-primary': $route.path.startsWith('/orders') }">
+        <span class="material-symbols-outlined">receipt_long</span>
+        <span class="text-[10px] font-bold uppercase tracking-widest mt-1">Orders</span>
+      </NuxtLink>
+      <NuxtLink to="/profile" class="flex flex-col items-center justify-center p-2 transition-all" :class="{ 'text-primary': $route.path.startsWith('/profile') }">
+        <span class="material-symbols-outlined">person</span>
+        <span class="text-[10px] font-bold uppercase tracking-widest mt-1">Profile</span>
+      </NuxtLink>
+    </nav>
+
     <header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 py-4 bg-white/90 backdrop-blur-xl rounded-b-[32px] shadow-[0_8px_30px_rgb(236,72,153,0.15)] border-b border-primary/5">
       <NuxtLink to="/" class="flex items-center gap-2 group">
         <div class="bg-primary text-white p-1.5 rounded-xl group-hover:rotate-12 transition-transform">
@@ -57,29 +77,11 @@
     </header>
 
     <!-- Main Content -->
-    <main class="flex-grow pt-24 pb-12 px-4 max-w-7xl mx-auto w-full">
+    <main class="flex-grow pt-24 pb-32 px-4 max-w-7xl mx-auto w-full">
       <slot />
     </main>
 
-    <!-- BottomNavBar -->
-    <nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-end bg-white pb-6 pt-2 px-4 rounded-t-[40px] border-t-4 border-primary/5 shadow-[0_-10px_40px_rgba(255,183,206,0.2)] md:hidden">
-      <NuxtLink to="/" class="flex flex-col items-center justify-center p-2 rounded-full transition-all" :class="{ 'bg-primary text-white scale-110 shadow-lg -translate-y-2': $route.path === '/' }">
-        <span class="material-symbols-outlined">home</span>
-        <span v-if="$route.path !== '/'" class="text-[10px] font-bold uppercase tracking-widest mt-1">Home</span>
-      </NuxtLink>
-      <NuxtLink to="/jastiper/dashboard" class="flex flex-col items-center justify-center p-2 rounded-full transition-all" :class="{ 'bg-primary text-white scale-110 shadow-lg -translate-y-2': $route.path.startsWith('/jastiper') }">
-        <span class="material-symbols-outlined">delivery_dining</span>
-        <span v-if="!$route.path.startsWith('/jastiper')" class="text-[10px] font-bold uppercase tracking-widest mt-1">My Jastip</span>
-      </NuxtLink>
-      <NuxtLink to="/orders" class="flex flex-col items-center justify-center p-2 rounded-full transition-all" :class="{ 'bg-primary text-white scale-110 shadow-lg -translate-y-2': $route.path === '/orders' }">
-        <span class="material-symbols-outlined">receipt_long</span>
-        <span v-if="$route.path !== '/orders'" class="text-[10px] font-bold uppercase tracking-widest mt-1">Orders</span>
-      </NuxtLink>
-      <NuxtLink to="/profile" class="flex flex-col items-center justify-center p-2 rounded-full transition-all" :class="{ 'bg-primary text-white scale-110 shadow-lg -translate-y-2': $route.path === '/profile' }">
-        <span class="material-symbols-outlined">person</span>
-        <span v-if="$route.path !== '/profile'" class="text-[10px] font-bold uppercase tracking-widest mt-1">Profile</span>
-      </NuxtLink>
-    </nav>
+
   </div>
 </template>
 
