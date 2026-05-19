@@ -36,26 +36,26 @@
           <div class="flex items-center gap-3">
             <NuxtLink 
               to="/orders" 
-              class="btn btn-ghost btn-sm h-10 rounded-full font-bold px-4 gap-2 text-primary hover:bg-primary/10 transition-all"
+              class="btn btn-ghost btn-sm h-10 rounded-full font-bold px-3 md:px-4 gap-1 md:gap-2 text-primary hover:bg-primary/10 transition-all"
             >
               <span class="material-symbols-outlined text-sm">receipt_long</span>
-              PESANAN SAYA
+              <span class="hidden md:inline">PESANAN SAYA</span>
             </NuxtLink>
             <NuxtLink 
               v-if="user"
               to="/jastiper/dashboard" 
-              class="btn btn-ghost btn-sm h-10 rounded-full font-bold px-4 gap-2 text-primary hover:bg-primary/10 transition-all border-2 border-primary/20"
+              class="btn btn-ghost btn-sm h-10 rounded-full font-bold px-3 md:px-4 gap-1 md:gap-2 text-primary hover:bg-primary/10 transition-all border-2 border-primary/20"
             >
               <span class="material-symbols-outlined text-sm">dashboard</span>
-              DASHBOARD JASTIPER
+              <span class="hidden md:inline">DASHBOARD JASTIPER</span>
             </NuxtLink>
             <button 
               v-if="!user"
               @click="navigateTo('/register')" 
-              class="btn btn-secondary btn-sm h-10 rounded-full font-bold px-5 gap-2 shadow-lg shadow-secondary/20 hover:scale-105 transition-transform"
+              class="btn btn-secondary btn-sm h-10 rounded-full font-bold px-3 md:px-5 gap-1 md:gap-2 shadow-lg shadow-secondary/20 hover:scale-105 transition-transform"
             >
               <span class="material-symbols-outlined text-sm">delivery_dining</span>
-              MASUK / DAFTAR JASTIPER
+              <span class="hidden md:inline">MASUK / DAFTAR JASTIPER</span>
             </button>
           </div>
 

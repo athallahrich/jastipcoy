@@ -1,6 +1,6 @@
 <template>
   <div class="max-w-2xl mx-auto space-y-8 pb-20">
-    <div class="bg-white rounded-[3rem] p-10 shadow-2xl shadow-primary-container/10 border border-outline-variant/30 text-center space-y-6">
+    <div class="bg-white rounded-[2.5rem] md:rounded-[3rem] p-6 md:p-10 shadow-2xl shadow-primary-container/10 border border-outline-variant/30 text-center space-y-6">
       <div class="w-32 h-32 bg-primary-container text-primary rounded-full flex items-center justify-center mx-auto shadow-xl shadow-primary/10 border-4 border-white">
         <span class="material-symbols-outlined text-6xl">person</span>
       </div>
@@ -39,7 +39,7 @@
     </div>
 
     <!-- Additional Info Section -->
-    <div v-if="user" class="bg-surface-container/30 rounded-[2.5rem] p-8 border border-outline-variant/20 space-y-6">
+    <div v-if="user" class="bg-surface-container/30 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8 border border-outline-variant/20 space-y-6">
       <h2 class="text-xl font-bold px-2">Account Settings</h2>
       <div class="space-y-2">
         <div @click="navigateTo('/jastiper/change-pin')" class="flex justify-between items-center bg-white p-4 rounded-2xl border border-outline-variant/30 cursor-pointer hover:bg-surface-container transition-colors">
