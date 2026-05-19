@@ -38,19 +38,23 @@
 
     <!-- Management Controls -->
     <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
-      <div v-if="session?.status !== 'closed'" class="flex gap-3">
-        <button @click="copyShareLink" class="btn btn-primary rounded-full px-8 gap-2 shadow-lg shadow-primary/20">
+      <div class="flex flex-wrap gap-3">
+        <button v-if="session?.status !== 'closed'" @click="copyShareLink" class="btn btn-primary rounded-full px-6 md:px-8 gap-2 shadow-lg shadow-primary/20">
           <span class="material-symbols-outlined">share</span>
           Copy Link Jastip
         </button>
-        <button @click="blastWhatsApp" class="btn btn-secondary rounded-full px-8 gap-2 shadow-lg shadow-secondary/20">
+        <button v-if="session?.status !== 'closed'" @click="blastWhatsApp" class="btn btn-secondary rounded-full px-6 md:px-8 gap-2 shadow-lg shadow-secondary/20">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.284l-.779 2.853 2.934-.769c.946.514 1.777.822 2.594.822 3.18 0 5.767-2.586 5.767-5.766 0-3.18-2.587-5.766-5.767-5.766zm3.39 8.121c-.131.371-.781.71-1.077.749-.297.039-.571.053-1.636-.371-.84-.336-1.574-.836-2.222-1.484-.648-.648-1.148-1.382-1.484-2.222-.424-1.065-.41-1.339-.371-1.636.039-.296.377-.946.749-1.077.104-.037.218-.052.33-.053l.3.003c.124.004.246.012.366.059.204.079.356.241.446.435.158.343.376.819.387.842.062.13.064.276.009.41-.059.141-.161.271-.256.375l-.261.284c-.1.109-.204.195-.088.396.116.201.516.852 1.109 1.445.593.593 1.244.993 1.445 1.109.131.076.245.05.342-.057l.186-.206c.108-.12.235-.246.39-.3.155-.054.309-.039.463.018.154.057.973.458 1.139.541.166.082.277.123.317.191.04.068.04.394-.091.765z"/>
             <path d="M12.036 0c-6.627 0-12 5.373-12 12 0 2.159.57 4.186 1.564 5.94l-1.6 5.86 6.001-1.573c1.706.945 3.669 1.473 5.753 1.473 6.627 0 12-5.373 12-12s-5.373-12-12-12zm0 21.8c-2.023 0-3.923-.551-5.556-1.507l-.398-.234-3.57.936.953-3.483-.263-.418c-.997-1.585-1.566-3.468-1.566-5.494 0-5.403 4.397-9.8 9.8-9.8s9.8 4.397 9.8 9.8-4.397 9.8-9.8 9.8z"/>
           </svg>
           WhatsApp Blast
         </button>
-        <button v-if="session?.status !== 'closed'" @click="closeSession" class="btn btn-error text-white rounded-full px-8 gap-2 shadow-lg shadow-error/20">
+        <button @click="sendRecapWhatsApp" class="btn bg-white border border-emerald-500 text-emerald-600 hover:bg-emerald-50 rounded-full px-6 md:px-8 gap-2 shadow-sm">
+          <span class="material-symbols-outlined">summarize</span>
+          Rekap Order WA
+        </button>
+        <button v-if="session?.status !== 'closed'" @click="closeSession" class="btn btn-error text-white rounded-full px-6 md:px-8 gap-2 shadow-lg shadow-error/20">
           <span class="material-symbols-outlined">block</span>
           Tutup Sesi
         </button>
@@ -337,6 +341,32 @@ const blastWhatsApp = () => {
     const link = `${window.location.origin}/sessions?token=${session.value.share_token}`;
     const text = encodeURIComponent(`Halo teman-teman! Saya sedang membuka jastip '${session.value.title}' nih. Yuk yang mau titip bisa langsung klik link ini ya:\n\n${link}\n\nBuruan order sebelum kuota penuh! ✨`);
     window.open(`https://wa.me/?text=${text}`, '_blank');
+};
+
+const sendRecapWhatsApp = () => {
+    if (!orders.value.length) {
+        alert('Belum ada pesanan untuk direkap.');
+        return;
+    }
+    
+    let text = `*REKAP PESANAN*\nSesi: ${session.value.title}\n\n`;
+    
+    orders.value.forEach((order, index) => {
+        text += `*${index + 1}. ${order.buyer_name}*\n`;
+        order.details.forEach(item => {
+            text += `- ${item.quantity}x ${item.item_name} @Rp${parseInt(item.price||0).toLocaleString('id-ID')}\n`;
+            if (item.note) text += `  (Note: ${item.note})\n`;
+        });
+        text += `Fee Jastip: Rp ${parseInt(session.value?.fee || 5000).toLocaleString('id-ID')}\n`;
+        text += `Total Tagihan: Rp ${parseInt(order.amount).toLocaleString('id-ID')}\n`;
+        text += `Status: ${order.status.toUpperCase()}\n\n`;
+    });
+    
+    text += `*Total Pesanan: ${orders.value.length} Orang*\n`;
+    text += `*Total Keseluruhan Omzet: Rp ${totalSales.value.toLocaleString('id-ID')}*`;
+    
+    const encodedText = encodeURIComponent(text);
+    window.open(`https://wa.me/?text=${encodedText}`, '_blank');
 };
 
 const activeReceipt = ref(null);
