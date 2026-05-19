@@ -10,13 +10,23 @@
         <div class="flex-1 text-center sm:text-left space-y-2">
           <div class="inline-flex items-center gap-2 bg-secondary-container text-on-secondary-container px-4 py-1 rounded-full text-xs font-bold">
             <span class="material-symbols-outlined text-sm animate-pulse">timer</span>
-            Closing at {{ session.closing_time }}
+            Closing at {{ formattedClosingTime }}
           </div>
           <h1 class="text-4xl font-black text-on-surface font-plus-jakarta leading-tight">{{ session.title }}</h1>
-          <p class="text-on-surface-variant flex items-center justify-center sm:justify-start gap-2 font-medium">
-            <span class="material-symbols-outlined text-primary text-xl">route</span>
-            {{ session.location_name }}
-          </p>
+          <div class="space-y-1">
+            <p class="text-on-surface-variant flex items-center justify-center sm:justify-start gap-2 font-medium">
+              <span class="material-symbols-outlined text-primary text-xl">route</span>
+              {{ session.location_name }}
+            </p>
+            <p class="text-on-surface-variant flex items-center justify-center sm:justify-start gap-2 font-medium">
+              <span class="material-symbols-outlined text-primary text-xl">person</span>
+              {{ session.jastiper_name || 'Jastiper' }}
+            </p>
+            <p v-if="session.jastiper_phone" class="text-on-surface-variant flex items-center justify-center sm:justify-start gap-2 font-medium">
+              <span class="material-symbols-outlined text-primary text-xl">call</span>
+              {{ session.jastiper_phone }}
+            </p>
+          </div>
         </div>
       </section>
 
@@ -278,6 +288,18 @@ const isPast = computed(() => {
 const isClosed = computed(() => {
     const status = session.value?.status?.toLowerCase();
     return status === 'closed' || status === 'close';
+});
+
+const formattedClosingTime = computed(() => {
+    if (!session.value?.closing_time) return '';
+    const parts = session.value.closing_time.split(/[-T :]/);
+    if (parts.length >= 5) {
+        const date = new Date(parts[0], parts[1] - 1, parts[2], parts[3], parts[4]);
+        const formattedDate = date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+        const formattedTime = date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace('.', ':');
+        return `${formattedDate}, ${formattedTime}`;
+    }
+    return session.value.closing_time;
 });
 
 const submitOrder = async () => {
