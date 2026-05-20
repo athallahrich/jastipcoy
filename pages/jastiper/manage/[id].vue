@@ -61,15 +61,20 @@
       </div>
 
       <!-- Bulk Actions -->
-      <div v-if="orders.length > 0 && session?.status !== 'closed'" class="flex items-center gap-3 bg-surface-container/50 p-2 rounded-full border border-outline-variant/30">
-        <span class="text-[10px] font-black uppercase text-on-surface-variant/60 ml-4 hidden sm:inline">Bulk Action:</span>
-        <button @click="bulkStatus('procuring')" class="btn btn-xs sm:btn-sm btn-ghost hover:bg-secondary/10 text-secondary font-black rounded-full px-4">
-          <span class="material-symbols-outlined text-xs">shopping_bag</span>
-          Beli Semua
-        </button>
-        <button @click="bulkStatus('ready')" class="btn btn-xs sm:btn-sm btn-ghost hover:bg-emerald-100 text-emerald-600 font-black rounded-full px-4">
-          <span class="material-symbols-outlined text-xs">check_circle</span>
-          Siap Semua
+      <div v-if="orders.length > 0 && session?.status !== 'closed'" class="flex items-center gap-3 bg-surface-container/50 p-2 rounded-2xl border border-outline-variant/30">
+        <span class="text-[10px] font-black uppercase text-on-surface-variant/60 ml-4 hidden sm:inline">Update Semua:</span>
+        <select 
+          class="select select-bordered select-sm rounded-full bg-white border-none ring-2 ring-primary/10 focus:ring-primary font-bold text-sm"
+          v-model="bulkSelected"
+        >
+          <option value="" disabled>Pilih Status</option>
+          <option value="pending">Pending (Belum Bayar)</option>
+          <option value="procuring">Procuring (Sedang Dibeli)</option>
+          <option value="ready">Ready (Siap Diambil)</option>
+          <option value="completed">Completed (Selesai)</option>
+        </select>
+        <button @click="applyBulk" class="btn btn-sm btn-primary rounded-full px-4" :disabled="!bulkSelected">
+          Terapkan
         </button>
       </div>
     </div>
@@ -300,12 +305,16 @@ const updateStatus = async (orderId, newStatus) => {
   }
 };
 
-const bulkStatus = async (status) => {
+const bulkSelected = ref('');
+
+const applyBulk = async () => {
+    if (!bulkSelected.value) return;
     if (!orders.value.length) return;
-    if (!confirm(`Update semua pesanan (${orders.value.length}) menjadi '${status}'?`)) return;
+    if (!confirm(`Update semua pesanan (${orders.value.length}) menjadi '${bulkSelected.value}'?`)) return;
     try {
-        await updateBatchStatus(route.params.id, status);
-        orders.value.forEach(o => o.status = status);
+        await updateBatchStatus(route.params.id, bulkSelected.value);
+        orders.value.forEach(o => o.status = bulkSelected.value);
+        bulkSelected.value = '';
     } catch (e) {
         alert('Gagal update massal.');
     }
