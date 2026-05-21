@@ -137,13 +137,17 @@
                       v-if="session?.status !== 'closed'"
                       type="number"
                       class="bg-transparent border-b border-dashed border-outline-variant focus:border-primary focus:outline-none w-20 text-right font-bold text-sm text-on-surface"
-                      :value="item.price"
+                      :value="item.price && parseInt(item.price) > 0 ? item.price : ''"
                       @change="(e) => updateItemPrice(order, idx, e.target.value)"
                       placeholder="Harga"
                     />
-                    <span v-else class="w-20 text-right font-bold text-sm text-on-surface">Rp {{ parseInt(item.price || 0).toLocaleString('id-ID') }}</span>
+                    <span v-else class="w-20 text-right font-bold text-sm text-on-surface">
+                      {{ (parseInt(item.price) && parseInt(item.price) > 0) ? 'Rp ' + parseInt(item.price).toLocaleString('id-ID') : 'Menyusul' }}
+                    </span>
                   </div>
-                  <span class="font-black text-primary text-sm">Rp {{ (parseInt(item.price || 0) * item.quantity).toLocaleString('id-ID') }}</span>
+                  <span class="font-black text-primary text-sm">
+                    {{ (parseInt(item.price) && parseInt(item.price) > 0) ? 'Rp ' + (parseInt(item.price) * item.quantity).toLocaleString('id-ID') : 'Menyusul' }}
+                  </span>
                </div>
             </div>
           </div>
@@ -158,7 +162,10 @@
              </div>
              <div class="text-base font-black text-on-surface flex justify-between w-full border-t border-outline-variant/20 pt-2 mt-1">
                <span>Total Tagihan</span>
-               <span class="text-primary">Rp {{ parseInt(order.amount).toLocaleString('id-ID') }}</span>
+               <span class="text-primary text-right">
+                 Rp {{ parseInt(order.amount).toLocaleString('id-ID') }}
+                 <span v-if="!order.details.every(item => parseInt(item.price) && parseInt(item.price) > 0)" class="text-xs text-amber-600 block font-medium">(Belum Final)</span>
+               </span>
              </div>
           </div>
 

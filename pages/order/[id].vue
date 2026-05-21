@@ -45,7 +45,7 @@
             <div class="flex-1">
               <h3 class="font-bold text-on-surface text-lg">{{ item.name }}</h3>
               <p class="text-primary font-black mt-1">
-                 <span v-if="item.price">Rp {{ parseInt(item.price).toLocaleString('id-ID') }}</span>
+                 <span v-if="item.price && parseInt(item.price) > 0">Rp {{ parseInt(item.price).toLocaleString('id-ID') }}</span>
                  <span v-else class="text-sm italic text-on-surface-variant">Harga Menyusul</span>
               </p>
               
@@ -93,7 +93,7 @@
                   <span class="badge badge-primary font-bold">{{ c.quantity }}x</span>
                   <span class="text-on-surface text-sm font-medium">{{ c.name }}</span>
                 </div>
-                <span class="font-bold text-on-surface text-sm">Rp {{ c.total }}</span>
+                <span class="font-bold text-on-surface text-sm">{{ c.total === 'Menyusul' ? 'Menyusul' : 'Rp ' + c.total }}</span>
               </div>
               <input 
                 type="text" 
@@ -109,7 +109,7 @@
         <div class="space-y-2">
           <div class="flex justify-between text-on-surface-variant text-sm font-medium">
             <span>Subtotal</span>
-            <span>Rp {{ subtotal }}</span>
+            <span>{{ isCartPriceConfirmed ? 'Rp ' + subtotal : 'Menyusul' }}</span>
           </div>
           <div class="flex justify-between text-on-surface-variant text-sm font-medium">
             <span>Jastip Fee (Est.)</span>
@@ -117,7 +117,7 @@
           </div>
           <div class="flex justify-between text-primary text-2xl font-black font-plus-jakarta pt-4 border-t-2 border-surface-container">
             <span>Total</span>
-            <span>Rp {{ grandTotal }}</span>
+            <span>{{ isCartPriceConfirmed ? 'Rp ' + grandTotal : 'Menyusul (Menunggu Jastiper)' }}</span>
           </div>
         </div>
 
@@ -274,6 +274,15 @@ const subtotalNum = computed(() => {
 
 const subtotal = computed(() => subtotalNum.value.toLocaleString('id-ID'));
 const grandTotal = computed(() => (subtotalNum.value + parseInt(session.value?.fee || 5000)).toLocaleString('id-ID'));
+
+const isCartPriceConfirmed = computed(() => {
+  if (cart.value.length === 0) return true;
+  return cart.value.every(c => {
+    const item = menu.value.find(m => m.id === c.id);
+    const val = parseInt(item?.price);
+    return !isNaN(val) && val > 0;
+  });
+});
 
 const isPast = computed(() => {
     if (!session.value?.closing_time) return false;

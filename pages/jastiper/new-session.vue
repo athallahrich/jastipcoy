@@ -136,8 +136,8 @@
                     <input v-model="item.name" placeholder="Item name" class="input input-bordered input-sm w-full rounded-xl" required />
                   </div>
                   <div class="w-32 space-y-2">
-                    <label class="text-[10px] font-black uppercase text-on-surface-variant px-2">Harga</label>
-                    <input v-model="item.price" type="number" placeholder="Price" class="input input-bordered input-sm w-full rounded-xl" required />
+                    <label class="text-[10px] font-black uppercase text-on-surface-variant px-2">Harga (Opsional)</label>
+                    <input v-model="item.price" type="number" placeholder="Bisa kosong / 0" class="input input-bordered input-sm w-full rounded-xl" />
                   </div>
                   <button type="button" @click="removeItem(idx)" class="btn btn-ghost btn-sm btn-circle text-error mb-1">
                     <span class="material-symbols-outlined text-sm">delete</span>
