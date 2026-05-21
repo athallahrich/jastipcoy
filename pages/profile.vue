@@ -1,6 +1,14 @@
 <template>
-  <div class="max-w-2xl mx-auto space-y-8 pb-20">
-    <div class="bg-white rounded-[2.5rem] md:rounded-[3rem] p-6 md:p-10 shadow-2xl shadow-primary-container/10 border border-outline-variant/30 text-center space-y-6">
+  <div class="max-w-2xl mx-auto space-y-8 pb-20 relative">
+    <button 
+      @click="triggerTour"
+      class="btn btn-xs bg-white border border-outline-variant/30 rounded-full px-3 gap-1 shadow-sm absolute -top-4 right-0"
+    >
+      <span class="material-symbols-outlined text-[12px]">help</span>
+      Panduan
+    </button>
+
+    <div id="tour-profile-card" class="bg-white rounded-[2.5rem] md:rounded-[3rem] p-6 md:p-10 shadow-2xl shadow-primary-container/10 border border-outline-variant/30 text-center space-y-6">
       <div class="w-32 h-32 bg-primary-container text-primary rounded-full flex items-center justify-center mx-auto shadow-xl shadow-primary/10 border-4 border-white">
         <span class="material-symbols-outlined text-6xl">person</span>
       </div>
@@ -19,7 +27,7 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-4 pt-4">
+      <div id="tour-profile-bento" class="grid grid-cols-2 gap-4 pt-4">
         <div class="bg-surface-container/50 p-6 rounded-[2rem] border border-outline-variant/20">
           <div class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1">Status</div>
           <div class="text-lg font-black text-green-600">Active</div>
@@ -39,7 +47,7 @@
     </div>
 
     <!-- Additional Info Section -->
-    <div v-if="user" class="bg-surface-container/30 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8 border border-outline-variant/20 space-y-6">
+    <div id="tour-profile-settings" v-if="user" class="bg-surface-container/30 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8 border border-outline-variant/20 space-y-6">
       <h2 class="text-xl font-bold px-2">Account Settings</h2>
       <div class="space-y-2">
         <div @click="navigateTo('/jastiper/change-pin')" class="flex justify-between items-center bg-white p-4 rounded-2xl border border-outline-variant/30 cursor-pointer hover:bg-surface-container transition-colors">
@@ -95,7 +103,22 @@ onMounted(async () => {
       console.error('Failed to fetch fresh user data:', e);
     }
   }
+
+  // Trigger tour if first time visiting
+  setTimeout(() => {
+    startTour('profile', pageSteps, false);
+  }, 500);
 });
+
+const { startTour } = useTour();
+
+const pageSteps = [
+  { element: '#tour-profile-card', popover: { title: 'Profil Kamu', description: 'Lihat info akun kamu seperti nama, Jastiper ID, dan nomor WhatsApp.' } },
+  { element: '#tour-profile-bento', popover: { title: 'Status & Badge', description: 'Ini adalah pencapaian kamu sebagai Jastiper. Status aktif dan Badge spesial kamu.' } },
+  { element: '#tour-profile-settings', popover: { title: 'Pengaturan Akun', description: 'Di sini kamu bisa mengganti PIN, mengubah nomor WhatsApp, menambah metode pembayaran, atau memberikan kritik/saran.' } }
+];
+
+const triggerTour = () => startTour('profile', pageSteps, true);
 
 const handleLogout = () => {
   if (confirm('Yakin ingin keluar? Semua data sesi kamu tetap di server, tapi di perangkat ini akan logout.')) {

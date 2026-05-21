@@ -9,17 +9,27 @@
           Pro Jastiper Mode
         </p>
       </div>
-      <button 
-        class="btn btn-primary rounded-full px-8 gap-2 shadow-lg shadow-primary/20"
-        @click="navigateTo('/jastiper/new-session')"
-      >
-        <span class="material-symbols-outlined">add</span>
-        New Session
-      </button>
+      <div class="flex gap-3">
+        <button 
+          @click="triggerTour"
+          class="btn bg-white border border-outline-variant/30 rounded-full px-4 gap-2 shadow-sm text-sm"
+        >
+          <span class="material-symbols-outlined">help</span>
+          Panduan
+        </button>
+        <button 
+          id="tour-header-new-session"
+          class="btn btn-primary rounded-full px-8 gap-2 shadow-lg shadow-primary/20"
+          @click="navigateTo('/jastiper/new-session')"
+        >
+          <span class="material-symbols-outlined">add</span>
+          New Session
+        </button>
+      </div>
     </div>
 
     <!-- Stats Bento -->
-    <div v-if="stats" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div id="tour-dashboard-stats" v-if="stats" class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div class="bg-primary-container text-on-primary-container p-8 rounded-[2rem] shadow-sm">
         <div class="text-sm font-bold uppercase tracking-wider opacity-70 mb-2">Total Earnings</div>
         <div class="text-4xl font-black font-plus-jakarta">Rp {{ stats.earnings.toLocaleString('id-ID') }}</div>
@@ -47,7 +57,7 @@
     </div>
 
     <!-- Active Sessions List -->
-    <div class="space-y-6">
+    <div id="tour-live-sessions" class="space-y-6">
       <h2 class="text-2xl font-bold text-on-surface font-plus-jakarta flex items-center gap-2">
         <span class="material-symbols-outlined text-primary fill">splitscreen</span>
         Live Sessions
@@ -115,7 +125,7 @@
     </div>
 
     <!-- Recent Orders List -->
-    <div v-if="stats && stats.recent_orders.length > 0" class="space-y-6 pb-12">
+    <div id="tour-recent-orders" v-if="stats && stats.recent_orders.length > 0" class="space-y-6 pb-12">
       <h2 class="text-2xl font-bold text-on-surface font-plus-jakarta flex items-center gap-2">
         <span class="material-symbols-outlined text-primary fill">history</span>
         Recent Orders
@@ -201,12 +211,28 @@ onMounted(async () => {
       };
     });
 
+    // Trigger tour after data load
+    setTimeout(() => {
+      startTour('dashboard', pageSteps, false);
+    }, 500);
+
   } catch (error) {
     console.error('Failed to fetch dashboard data', error);
   } finally {
     isLoading.value = false;
   }
 });
+
+const { startTour } = useTour();
+
+const pageSteps = [
+  { element: '#tour-dashboard-stats', popover: { title: 'Ringkasan Dashboard', description: 'Di sini kamu bisa melihat total pendapatan, jumlah pesanan aktif, dan performa kamu.' } },
+  { element: '#tour-header-new-session', popover: { title: 'Buka Jastip Baru', description: 'Klik tombol ini untuk mulai membuka sesi jastip di lokasi baru.' } },
+  { element: '#tour-live-sessions', popover: { title: 'Sesi Aktif', description: 'Daftar semua jastip kamu yang sedang berjalan. Kamu bisa memantau kuota dan masuk ke halaman Kelola Sesi dari sini.' } },
+  { element: '#tour-recent-orders', popover: { title: 'Riwayat Pesanan', description: 'Lihat pesanan-pesanan terbaru yang masuk beserta statusnya dengan cepat.' } }
+];
+
+const triggerTour = () => startTour('dashboard', pageSteps, true);
 
 const closeSession = async (sessionId) => {
   if (confirm('Yakin ingin menutup sesi jastip ini?')) {

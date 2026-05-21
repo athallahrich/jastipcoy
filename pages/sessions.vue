@@ -1,20 +1,30 @@
 <template>
   <div>
     <!-- Page Header -->
-    <div class="mb-8">
-      <h1 class="text-4xl font-extrabold text-on-surface font-plus-jakarta">Active Jastips</h1>
-      <div class="flex items-center gap-2 mt-2">
-        <p class="text-on-surface-variant flex items-center gap-1">
-          Delivering to <span class="font-bold text-primary">{{ locationName }}</span>
-        </p>
-        <button @click="navigateTo('/')" class="btn btn-xs bth-ghost text-primary lowercase font-bold hover:bg-primary-container px-2 rounded-full">
-          Ganti Area <span class="material-symbols-outlined text-xs">edit</span>
-        </button>
+    <div class="mb-8 relative">
+      <div id="tour-sessions-header">
+        <h1 class="text-4xl font-extrabold text-on-surface font-plus-jakarta">Active Jastips</h1>
+        <div class="flex items-center gap-2 mt-2">
+          <p class="text-on-surface-variant flex items-center gap-1">
+            Delivering to <span class="font-bold text-primary">{{ locationName }}</span>
+          </p>
+          <button @click="navigateTo('/')" class="btn btn-xs bth-ghost text-primary lowercase font-bold hover:bg-primary-container px-2 rounded-full">
+            Ganti Area <span class="material-symbols-outlined text-xs">edit</span>
+          </button>
+        </div>
       </div>
+      <button 
+        type="button"
+        @click="triggerTour"
+        class="btn btn-xs bg-white border border-outline-variant/30 rounded-full px-3 gap-1 shadow-sm absolute -top-4 right-0"
+      >
+        <span class="material-symbols-outlined text-[12px]">help</span>
+        Panduan
+      </button>
     </div>
 
     <!-- Filters -->
-    <div class="flex gap-2 overflow-x-auto pb-4 scrollbar-hide">
+    <div id="tour-sessions-filters" class="flex gap-2 overflow-x-auto pb-4 scrollbar-hide">
       <button class="btn btn-primary btn-sm rounded-full capitalize">All Items</button>
       <button class="btn btn-ghost btn-sm rounded-full bg-surface-container-high capitalize">Coffee & Drinks</button>
       <button class="btn btn-ghost btn-sm rounded-full bg-surface-container-high capitalize">Lunch Boxes</button>
@@ -22,7 +32,7 @@
 
     <ClientOnly>
       <!-- Jastip Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div id="tour-sessions-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div 
           v-for="session in sessions" 
           :key="session.id"
@@ -102,13 +112,15 @@
 
       <!-- Floating Action Button -->
       <button 
+        id="tour-sessions-fab"
         v-motion
-        v-motion-hover="{ scale: 1.1 }"
+        v-motion-hover="{ scale: 1.05 }"
         v-motion-active="{ scale: 0.95 }"
-        class="fixed bottom-24 right-6 z-40 btn btn-circle btn-primary btn-lg shadow-2xl"
+        class="fixed bottom-24 right-6 z-40 btn btn-primary rounded-full px-6 shadow-2xl flex items-center gap-2 font-black italic tracking-tight text-white hover:bg-primary-hover"
         @click="navigateTo('/jastiper/new-session')"
       >
-        <span class="material-symbols-outlined text-3xl">add</span>
+        <span class="material-symbols-outlined text-2xl">add_circle</span>
+        BUKA JASTIP ✨
       </button>
     </ClientOnly>
   </div>
@@ -169,12 +181,27 @@ onMounted(async () => {
         totalSlots: s.total_slots
       };
     });
+    // Trigger tour after data load
+    setTimeout(() => {
+      startTour('sessions', pageSteps, false);
+    }, 500);
   } catch (error) {
     console.error('Failed to fetch sessions');
   } finally {
     isLoading.value = false;
   }
 });
+
+const { startTour } = useTour();
+
+const pageSteps = [
+  { element: '#tour-sessions-header', popover: { title: 'Area Jastip Aktif 📍', description: 'Kamu sedang melihat semua tawaran jastip yang mengantar ke area ini. Jika ingin mengubah lokasi pengantaran, klik tombol Ganti Area.' } },
+  { element: '#tour-sessions-filters', popover: { title: 'Filter Kategori 🍔', description: 'Gunakan tombol filter ini untuk menyaring jastip makanan atau kopi/minuman dengan cepat.' } },
+  { element: '#tour-sessions-list', popover: { title: 'Daftar Jastip 🛍️', description: 'Deretan kartu jastip yang dibuka oleh para Jastiper. Kartu yang statusnya OPEN bisa kamu klik untuk mulai memesan menu!' } },
+  { element: '#tour-sessions-fab', popover: { title: 'Jadi Jastiper Baru 🚀', description: 'Kamu juga bisa membuka jasa titipanmu sendiri dan menghasilkan uang dengan klik tombol tambah ini!' } }
+];
+
+const triggerTour = () => startTour('sessions', pageSteps, true);
 </script>
 
 <style scoped>

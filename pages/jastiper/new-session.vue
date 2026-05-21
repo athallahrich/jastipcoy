@@ -31,13 +31,21 @@
 
     <!-- Form View -->
     <div v-else class="space-y-12">
-      <div class="text-center space-y-2">
+      <div class="text-center space-y-2 relative">
         <h1 class="text-5xl font-extrabold text-primary font-plus-jakarta italic tracking-tighter">Buka Jastip Baru ✨</h1>
         <p class="text-on-surface-variant font-medium">Isi detailnya dan mulai kumpulkan pesanan!</p>
+        <button 
+          type="button"
+          @click="triggerTour"
+          class="btn btn-xs bg-white border border-outline-variant/30 rounded-full px-3 gap-1 shadow-sm absolute -top-4 right-0"
+        >
+          <span class="material-symbols-outlined text-[12px]">help</span>
+          Panduan
+        </button>
       </div>
 
       <div class="bg-white rounded-[3rem] shadow-2xl shadow-primary-container/10 p-8 md:p-12 border border-outline-variant/30">
-        <div class="flex items-center justify-between mb-12 relative px-4">
+        <div id="tour-session-stepper" class="flex items-center justify-between mb-12 relative px-4">
           <div class="absolute top-5 left-12 right-12 h-1 bg-surface-container -z-0">
             <div class="h-full bg-primary transition-all duration-500" :style="{ width: progressWidth }"></div>
           </div>
@@ -52,7 +60,7 @@
         <form @submit.prevent="handleLaunch" novalidate>
           <ClientOnly>
             <!-- Step 1: Details -->
-            <div v-show="currentStep === 1" class="space-y-8">
+            <div id="tour-session-fields" v-show="currentStep === 1" class="space-y-8">
               <h2 class="text-2xl font-bold text-on-surface flex items-center gap-2 border-b-2 border-primary-container/20 pb-4">
                 <span class="material-symbols-outlined text-primary fill">storefront</span>
                 Detail Jastip
@@ -190,7 +198,7 @@
             </div>
           </ClientOnly>
 
-          <div class="flex gap-4 mt-12 pt-8 border-t border-outline-variant/30">
+          <div id="tour-session-nav" class="flex gap-4 mt-12 pt-8 border-t border-outline-variant/30">
             <button v-if="currentStep > 1" type="button" @click="currentStep--" class="btn btn-ghost rounded-full px-8 font-bold">Kembali</button>
             <button v-if="currentStep < 4" type="button" @click="nextStep" :disabled="currentStep === 3 && paymentMethods.length === 0" class="btn btn-primary flex-1 rounded-full px-8 font-bold">Lanjut</button>
             <button v-else type="submit" :disabled="isLoading" class="btn btn-primary flex-1 rounded-full px-8 font-black text-lg italic shadow-xl shadow-primary/30">
@@ -348,7 +356,20 @@ const saveNewPayment = async () => {
 onMounted(() => {
     loadLocations();
     loadPaymentMethods();
+    setTimeout(() => {
+        startTour('new_session', pageSteps, false);
+    }, 800);
 });
+
+const { startTour } = useTour();
+
+const pageSteps = [
+  { element: '#tour-session-stepper', popover: { title: 'Tahapan Buka Jastip', description: 'Ada 4 tahapan simpel: mengisi detail, memasukkan menu, memilih metode pembayaran, lalu meluncurkannya!' } },
+  { element: '#tour-session-fields', popover: { title: 'Detail Jastip', description: 'Tulis nama jastip, tentukan ongkos jastip (fee), jumlah maksimal orang (slot), dan batas waktu order.' } },
+  { element: '#tour-session-nav', popover: { title: 'Navigasi Form', description: 'Gunakan tombol Lanjut atau Kembali untuk mengisi data tiap langkah hingga selesai.' } }
+];
+
+const triggerTour = () => startTour('new_session', pageSteps, true);
 
 const menuItems = ref([
   { id: Date.now(), name: '', price: '' }

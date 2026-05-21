@@ -2,7 +2,7 @@
   <div class="max-w-5xl mx-auto pb-24">
     <!-- Session Context Header -->
     <div v-if="session" class="bg-white rounded-[3rem] p-8 shadow-xl shadow-primary-container/10 border border-outline-variant/20 mb-8 flex flex-col md:flex-row justify-between items-center gap-6">
-      <div class="flex items-center gap-6">
+      <div id="tour-session-info" class="flex items-center gap-6">
         <div class="w-20 h-20 bg-primary-container text-primary rounded-[2rem] flex items-center justify-center shadow-lg shadow-primary/10">
           <span class="material-symbols-outlined text-4xl fill">restaurant</span>
         </div>
@@ -24,7 +24,7 @@
           </p>
         </div>
       </div>
-      <div class="flex gap-3">
+      <div id="tour-stats" class="flex gap-3">
         <div class="bg-surface-container px-6 py-4 rounded-[2rem] text-center border border-outline-variant/30">
           <div class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">Total Pesanan</div>
           <div class="text-2xl font-black text-primary">{{ orders.length }}</div>
@@ -38,7 +38,11 @@
 
     <!-- Management Controls -->
     <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
-      <div class="flex flex-wrap gap-3">
+      <div id="tour-controls" class="flex flex-wrap gap-3">
+        <button @click="triggerTour" class="btn bg-white border border-outline-variant/30 rounded-full px-4 gap-2 shadow-sm text-sm">
+          <span class="material-symbols-outlined">help</span>
+          Panduan
+        </button>
         <button v-if="session?.status !== 'closed'" @click="copyShareLink" class="btn btn-primary rounded-full px-6 md:px-8 gap-2 shadow-lg shadow-primary/20">
           <span class="material-symbols-outlined">share</span>
           Copy Link Jastip
@@ -61,7 +65,7 @@
       </div>
 
       <!-- Bulk Actions -->
-      <div v-if="orders.length > 0 && session?.status !== 'closed'" class="flex items-center gap-3 bg-surface-container/50 p-2 rounded-2xl border border-outline-variant/30">
+      <div id="tour-bulk-action" v-if="orders.length > 0 && session?.status !== 'closed'" class="flex items-center gap-3 bg-surface-container/50 p-2 rounded-2xl border border-outline-variant/30">
         <span class="text-[10px] font-black uppercase text-on-surface-variant/60 ml-4 hidden sm:inline">Update Semua:</span>
         <select 
           class="select select-bordered select-sm rounded-full bg-white border-none ring-2 ring-primary/10 focus:ring-primary font-bold text-sm"
@@ -82,8 +86,9 @@
     <!-- Orders Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <div 
-        v-for="order in orders" 
+        v-for="(order, idx) in orders" 
         :key="order.id"
+        :id="idx === 0 ? 'tour-order-card' : undefined"
         class="bg-white rounded-[2rem] p-6 shadow-xl shadow-primary-container/5 border border-outline-variant/30 transition-all relative overflow-hidden flex flex-col justify-between hover:shadow-2xl hover:shadow-primary-container/10 group/card"
         :class="order.status === 'completed' ? 'bg-emerald-50/20 border-emerald-500/30' : ''"
       >
@@ -255,7 +260,25 @@ const fetchData = async () => {
   }
 };
 
-onMounted(fetchData);
+onMounted(async () => {
+  await fetchData();
+  setTimeout(() => {
+    // start tour automatically if first time visiting
+    startTour('manage_session', pageSteps, false);
+  }, 500);
+});
+
+const { startTour } = useTour();
+
+const pageSteps = [
+  { element: '#tour-session-info', popover: { title: 'Informasi Sesi', description: 'Di sini kamu bisa melihat detail jastip yang sedang aktif.' } },
+  { element: '#tour-stats', popover: { title: 'Ringkasan Pendapatan', description: 'Pantau jumlah pesanan yang masuk dan total estimasi omzet kamu.' } },
+  { element: '#tour-controls', popover: { title: 'Kontrol Jastip', description: 'Bagikan link jastip ke pelanggan, broadcast ke WhatsApp, atau tutup sesi.' } },
+  { element: '#tour-bulk-action', popover: { title: 'Update Massal', description: 'Ubah status semua pesanan sekaligus menggunakan fitur ini.' } },
+  { element: '#tour-order-card', popover: { title: 'Detail Pesanan', description: 'Kelola pesanan pelanggan di sini. Edit harga, lihat bukti bayar, dan update status.' } }
+];
+
+const triggerTour = () => startTour('manage_session', pageSteps, true);
 
 const totalSales = computed(() => {
   return orders.value.reduce((acc, o) => acc + parseInt(o.amount), 0);

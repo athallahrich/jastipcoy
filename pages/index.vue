@@ -1,9 +1,17 @@
 <template>
   <div class="flex flex-col items-center justify-center min-h-[70vh] text-center pt-8">
     <!-- Hero Section -->
-    <div class="max-w-2xl mb-12">
-      <h1 class="text-4xl md:text-6xl font-black text-primary mb-6 font-plus-jakarta tracking-tighter italic">Where to today? 🌸</h1>
+    <div class="max-w-2xl mb-12 relative">
+      <h1 id="tour-landing-header" class="text-4xl md:text-6xl font-black text-primary mb-6 font-plus-jakarta tracking-tighter italic">Where to today? 🌸</h1>
       <p class="text-lg md:text-xl text-on-surface-variant font-medium leading-relaxed">Pilih lokasi pengantaran kamu untuk melihat sesi jastip yang tersedia di sekitarmu!</p>
+      <button 
+        type="button"
+        @click="triggerTour"
+        class="btn btn-xs bg-white border border-outline-variant/30 rounded-full px-3 gap-1 shadow-sm absolute -top-4 right-0"
+      >
+        <span class="material-symbols-outlined text-[12px]">help</span>
+        Panduan
+      </button>
     </div>
 
     <ClientOnly>
@@ -21,7 +29,7 @@
     </ClientOnly>
 
     <!-- Location Selection Grid -->
-    <div class="w-full max-w-4xl grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-16 px-4">
+    <div id="tour-landing-locations" class="w-full max-w-4xl grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-16 px-4">
       <ClientOnly>
         <button 
           v-for="loc in locations" 
@@ -44,7 +52,7 @@
 
     <!-- Action Banner & Add New Spot Form -->
     <div class="w-full max-w-4xl space-y-6 px-4 mb-20">
-      <div class="bg-white/50 backdrop-blur-md p-6 md:p-8 rounded-[2.5rem] md:rounded-[3rem] border-4 border-dashed border-primary/20 shadow-sm">
+      <div id="tour-landing-new-spot" class="bg-white/50 backdrop-blur-md p-6 md:p-8 rounded-[2.5rem] md:rounded-[3rem] border-4 border-dashed border-primary/20 shadow-sm">
         <button 
           class="w-full flex items-center justify-between transition-all group"
           @click="isAddingSpot = !isAddingSpot"
@@ -84,6 +92,7 @@
       <!-- Become Jastiper CTA -->
       <ClientOnly>
         <button 
+          id="tour-landing-cta"
           class="w-full bg-secondary text-white p-6 md:p-8 rounded-[2.5rem] md:rounded-[3rem] flex flex-col md:flex-row items-start md:items-center justify-between gap-6 transition-all shadow-xl shadow-secondary/20 group"
           @click="navigateTo(user ? '/jastiper/dashboard' : '/register')"
         >
@@ -133,7 +142,21 @@ const loadLocations = async () => {
 onMounted(() => {
   syncUser();
   loadLocations();
+  setTimeout(() => {
+    startTour('landing', pageSteps, false);
+  }, 800);
 });
+
+const { startTour } = useTour();
+
+const pageSteps = [
+  { element: '#tour-landing-header', popover: { title: 'Halo, Selamat Datang! 👋', description: 'Selamat datang di JastipCoyy. Di sini kamu bisa jastip makanan favoritmu di kampus atau kantormu dengan seru dan mudah!' } },
+  { element: '#tour-landing-locations', popover: { title: 'Pilih Lokasimu 📍', description: 'Klik lokasi pengantaran aktif tempat kamu berada untuk melihat menu dan sesi jastip yang tersedia.' } },
+  { element: '#tour-landing-new-spot', popover: { title: 'Tambah Lokasi Baru ➕', description: 'Tempat favoritmu belum ada? Jangan khawatir, kamu bisa menambahkan lokasi pengantaran baru kapan saja!' } },
+  { element: '#tour-landing-cta', popover: { title: 'Jadi Jastiper 🚀', description: 'Mau dapat penghasilan tambahan sambil jajan? Daftar sebagai Jastiper dan buka jasamu sendiri di sini!' } }
+];
+
+const triggerTour = () => startTour('landing', pageSteps, true);
 
 const selectLocation = (loc) => {
   locations.value.forEach(l => l.selected = l.id === loc.id);
