@@ -70,6 +70,11 @@
                 <label class="label font-bold text-on-surface-variant text-sm">Kamu mau beli apa? (Judul)</label>
                 <input v-model="form.title" type="text" placeholder="Contoh: Starbucks Run Kemang" class="input input-bordered input-lg bg-surface focus:border-primary rounded-2xl border-2 font-bold" required />
               </div>
+              
+              <div class="form-control">
+                <label class="label font-bold text-on-surface-variant text-sm">Deskripsi Jastip (Opsional)</label>
+                <textarea v-model="form.description" placeholder="Contoh: Titip donat/kopi favoritmu, nanti diantar ke lobby jam 3 sore ya!..." class="textarea textarea-bordered bg-surface focus:border-primary rounded-2xl border-2 font-medium h-24"></textarea>
+              </div>
 
               <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="form-control">
@@ -191,7 +196,8 @@
               
               <div class="bg-surface-container/50 p-8 rounded-[2.5rem] text-left space-y-4 max-w-md mx-auto border-2 border-primary/5 font-bold">
                 <div class="flex justify-between items-center"><span class="text-on-surface-variant text-xs uppercase opacity-50">Produk</span><span class="text-on-surface">{{ form.title }}</span></div>
-                <div class="flex justify-between items-center"><span class="text-on-surface-variant text-xs uppercase opacity-50">Menu</span><span class="text-on-surface">{{ menuItems.length }} Item</span></div>
+                <div v-if="form.description" class="flex flex-col gap-1 border-t border-dashed border-outline-variant/30 pt-3"><span class="text-on-surface-variant text-xs uppercase opacity-50">Deskripsi</span><span class="text-on-surface font-medium text-sm whitespace-pre-wrap">{{ form.description }}</span></div>
+                <div class="flex justify-between items-center border-t border-dashed border-outline-variant/30 pt-3"><span class="text-on-surface-variant text-xs uppercase opacity-50">Menu</span><span class="text-on-surface">{{ menuItems.length }} Item</span></div>
                 <div class="flex justify-between items-center"><span class="text-on-surface-variant text-xs uppercase opacity-50">Slot</span><span class="text-on-surface">{{ form.total_slots }} Orang</span></div>
                 <div class="flex justify-between items-center"><span class="text-on-surface-variant text-xs uppercase opacity-50">Lokasi</span><span class="text-on-surface">{{ selectedLocationName }}</span></div>
               </div>
@@ -385,6 +391,7 @@ const removeItem = (idx) => {
 
 const form = ref({
   title: '',
+  description: '',
   total_slots: '',
   closing_time: '',
   fee: 5000,

@@ -13,6 +13,7 @@
             Closing at {{ formattedClosingTime }}
           </div>
           <h1 class="text-4xl font-black text-on-surface font-plus-jakarta leading-tight">{{ session.title }}</h1>
+          <p v-if="session.description" class="text-on-surface-variant text-sm font-medium whitespace-pre-wrap border-l-4 border-primary/40 pl-4 py-2 my-4 bg-surface-container/30 rounded-r-2xl pr-4 leading-relaxed text-left">{{ session.description }}</p>
           <div class="space-y-1">
             <p class="text-on-surface-variant flex items-center justify-center sm:justify-start gap-2 font-medium">
               <span class="material-symbols-outlined text-primary text-xl">route</span>

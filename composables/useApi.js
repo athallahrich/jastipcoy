@@ -42,6 +42,7 @@ export const useApi = () => {
     getSession: (id) => fetchApi(`/sessions?id=${id}`),
     getSessionByToken: (token) => fetchApi(`/sessions?token=${token}`),
     updateSessionStatus: (id, status) => fetchApi('/sessions', { method: 'PATCH', body: JSON.stringify({ id, status }) }),
+    updateSession: (id, data) => fetchApi('/sessions', { method: 'PATCH', body: JSON.stringify({ id, ...data }) }),
     placeOrder: (data) => fetchApi('/orders', { method: 'POST', body: JSON.stringify(data) }),
     getOrders: (sessionId) => fetchApi(`/orders?session_id=${sessionId}`),
     updateOrderStatus: (id, status) => fetchApi('/orders', { method: 'PATCH', body: JSON.stringify({ id, status }) }),

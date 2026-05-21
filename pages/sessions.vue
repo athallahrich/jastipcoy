@@ -75,9 +75,10 @@
               <div class="w-16 h-16 rounded-xl overflow-hidden bg-white shadow-sm flex-shrink-0">
                 <img :src="session.mainItem.image" class="w-full h-full object-cover" />
               </div>
-              <div>
+              <div class="min-w-0 flex-1">
                 <h4 class="font-bold text-lg text-on-surface leading-tight">{{ session.title }}</h4>
-                <p class="text-sm text-on-surface-variant truncate w-40">{{ session.description }}</p>
+                <p v-if="session.description" class="text-sm text-on-surface-variant truncate">{{ session.description }}</p>
+                <p v-else class="text-xs text-on-surface-variant/50 italic">Tanpa deskripsi</p>
               </div>
             </div>
 

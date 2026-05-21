@@ -47,6 +47,10 @@
           <span class="material-symbols-outlined">share</span>
           Copy Link Jastip
         </button>
+        <button v-if="session?.status !== 'closed'" @click="openEditModal" class="btn bg-pink-50 border-2 border-primary/20 text-primary hover:bg-primary/10 rounded-full px-6 md:px-8 gap-2 shadow-md font-bold">
+          <span class="material-symbols-outlined">edit</span>
+          Edit Sesi
+        </button>
         <button v-if="session?.status !== 'closed'" @click="blastWhatsApp" class="btn btn-secondary rounded-full px-6 md:px-8 gap-2 shadow-lg shadow-secondary/20">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.284l-.779 2.853 2.934-.769c.946.514 1.777.822 2.594.822 3.18 0 5.767-2.586 5.767-5.766 0-3.18-2.587-5.766-5.767-5.766zm3.39 8.121c-.131.371-.781.71-1.077.749-.297.039-.571.053-1.636-.371-.84-.336-1.574-.836-2.222-1.484-.648-.648-1.148-1.382-1.484-2.222-.424-1.065-.41-1.339-.371-1.636.039-.296.377-.946.749-1.077.104-.037.218-.052.33-.053l.3.003c.124.004.246.012.366.059.204.079.356.241.446.435.158.343.376.819.387.842.062.13.064.276.009.41-.059.141-.161.271-.256.375l-.261.284c-.1.109-.204.195-.088.396.116.201.516.852 1.109 1.445.593.593 1.244.993 1.445 1.109.131.076.245.05.342-.057l.186-.206c.108-.12.235-.246.39-.3.155-.054.309-.039.463.018.154.057.973.458 1.139.541.166.082.277.123.317.191.04.068.04.394-.091.765z"/>
@@ -241,15 +245,155 @@
           </div>
        </div>
     </div>
+
+    <!-- Edit Session Modal -->
+    <Teleport to="body">
+      <div v-if="showEditModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
+        <div class="bg-white rounded-[3rem] w-full max-w-2xl p-8 md:p-10 space-y-6 shadow-2xl border border-outline-variant/30 my-8 animate-in zoom-in duration-300 max-h-[90vh] overflow-y-auto" @click.stop>
+          <div class="flex justify-between items-center border-b border-outline-variant/20 pb-4">
+            <h3 class="text-3xl font-black text-primary font-plus-jakarta italic tracking-tighter flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary fill">edit_note</span>
+              Edit Sesi Jastip 🚀
+            </h3>
+            <button @click="showEditModal = false" class="btn btn-ghost btn-circle btn-sm">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+          
+          <form @submit.prevent="saveSessionEdit" class="space-y-6">
+            <!-- Detail fields -->
+            <div class="form-control">
+              <label class="label font-bold text-on-surface-variant text-sm">Kamu mau beli apa? (Judul)</label>
+              <input v-model="editForm.title" type="text" placeholder="Contoh: Starbucks Run Kemang" class="input input-bordered input-lg bg-surface focus:border-primary rounded-2xl border-2 font-bold" required />
+            </div>
+            
+            <div class="form-control">
+              <label class="label font-bold text-on-surface-variant text-sm">Deskripsi Jastip (Opsional)</label>
+              <textarea v-model="editForm.description" placeholder="Contoh: Titip donat/kopi favoritmu..." class="textarea textarea-bordered bg-surface focus:border-primary rounded-2xl border-2 font-medium h-24"></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="form-control">
+                <label class="label font-bold text-on-surface-variant text-sm">Fee Jastip (Rp)</label>
+                <input v-model="editForm.fee" type="number" placeholder="Contoh: 5000" class="input input-bordered bg-surface focus:border-primary rounded-2xl border-2 font-bold" required />
+              </div>
+              <div class="form-control">
+                <label class="label font-bold text-on-surface-variant text-sm">Berapa Slot? (Max)</label>
+                <input v-model="editForm.total_slots" type="number" class="input input-bordered bg-surface focus:border-primary rounded-2xl border-2 font-bold" required />
+              </div>
+              <div class="form-control">
+                <label class="label font-bold text-on-surface-variant text-sm">Batas Waktu Order?</label>
+                <input v-model="editForm.closing_time" type="datetime-local" class="input input-bordered bg-surface focus:border-primary rounded-2xl border-2 font-bold" required />
+              </div>
+            </div>
+
+            <!-- Delivery Location -->
+            <div class="form-control">
+              <div class="flex justify-between items-center mb-2">
+                <label class="label font-bold text-on-surface-variant text-sm p-0">Pilih Lokasi Pengantaran</label>
+                <button type="button" @click="isAddingLocation = !isAddingLocation" class="btn btn-xs btn-primary rounded-full gap-1">
+                  <span class="material-symbols-outlined text-[14px]">{{ isAddingLocation ? 'close' : 'add' }}</span>
+                  {{ isAddingLocation ? 'Batal' : 'Lokasi Baru' }}
+                </button>
+              </div>
+
+              <!-- Add Location Form inside Edit -->
+              <div v-if="isAddingLocation" class="bg-surface-container/50 p-4 rounded-2xl border-2 border-dashed border-primary/20 mb-4 space-y-4 shadow-inner">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <input v-model="newSpot.name" type="text" placeholder="Nama Lokasi (Tower B, dsb)" class="input input-sm input-bordered rounded-xl" />
+                  <input v-model="newSpot.sub_name" type="text" placeholder="Detail (Dekat Lobby)" class="input input-sm input-bordered rounded-xl" />
+                </div>
+                <button type="button" @click="addNewLocation" class="btn btn-primary btn-sm w-full rounded-xl font-bold">Simpan & Pilih ✨</button>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div 
+                  v-for="loc in locationsList" 
+                  :key="loc.id"
+                  @click="editForm.location_id = loc.id"
+                  class="p-4 rounded-2xl border-2 cursor-pointer transition-all flex items-center gap-3 font-bold"
+                  :class="editForm.location_id === loc.id ? 'border-primary bg-primary/5 text-primary shadow-md' : 'border-outline-variant/30 hover:border-primary/30 text-on-surface-variant hover:bg-surface-container/30'"
+                >
+                  <span class="material-symbols-outlined">{{ loc.icon || 'location_on' }}</span>
+                  <div class="leading-tight">
+                    <div class="text-sm">{{ loc.name }}</div>
+                    <div class="text-[10px] opacity-60 font-medium">{{ loc.sub_name }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Menus/Daftar Barang -->
+            <div class="space-y-4 pt-4 border-t border-outline-variant/20">
+              <div class="flex justify-between items-center">
+                <h4 class="text-xl font-bold text-on-surface flex items-center gap-2">
+                  <span class="material-symbols-outlined text-primary fill">list_alt</span>
+                  Menu / Daftar Barang
+                </h4>
+                <button type="button" @click="addEditMenuItem" class="btn btn-xs btn-primary rounded-full gap-1">
+                  <span class="material-symbols-outlined text-[14px]">add</span>
+                  Tambah Item
+                </button>
+              </div>
+              
+              <div class="space-y-3 max-h-60 overflow-y-auto p-1">
+                <div v-for="(item, idx) in editMenuItems" :key="idx" class="flex gap-2 items-end bg-surface-container/30 p-3 rounded-xl border border-outline-variant/20">
+                  <div class="flex-1 space-y-1">
+                    <label class="text-[9px] font-black uppercase text-on-surface-variant px-1">Nama Barang</label>
+                    <input v-model="item.name" placeholder="Item name" class="input input-bordered input-sm w-full rounded-lg" required />
+                  </div>
+                  <div class="w-28 space-y-1">
+                    <label class="text-[9px] font-black uppercase text-on-surface-variant px-1">Harga</label>
+                    <input v-model="item.price" type="number" placeholder="Harga" class="input input-bordered input-sm w-full rounded-lg" />
+                  </div>
+                  <button type="button" @click="removeEditMenuItem(idx)" class="btn btn-ghost btn-xs btn-circle text-error mb-1">
+                    <span class="material-symbols-outlined text-sm">delete</span>
+                  </button>
+                </div>
+                <div v-if="editMenuItems.length === 0" class="text-center py-4 bg-surface-container/20 rounded-xl border border-dashed border-outline-variant/20">
+                  <p class="text-xs text-on-surface-variant italic">Belum ada item menu.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex gap-3 pt-6 border-t border-outline-variant/20">
+              <button type="button" @click="showEditModal = false" class="btn btn-ghost flex-1 rounded-full font-bold">Batal</button>
+              <button type="submit" :disabled="isSavingEdit" class="btn btn-primary flex-1 rounded-full font-black text-lg italic shadow-xl shadow-primary/30">
+                <span v-if="isSavingEdit" class="loading loading-spinner"></span>
+                <span v-else>Simpan Perubahan ✨</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup>
-const { getSession, getOrders, updateOrderStatus, updateBatchStatus, deleteOrder, updateSessionMenuPrice } = useApi();
+const { getSession, getOrders, updateOrderStatus, updateBatchStatus, deleteOrder, updateSessionMenuPrice, getLocations, createLocation, updateSession } = useApi();
 const route = useRoute();
 
 const session = ref(null);
 const orders = ref([]);
+
+// Edit Session Form States
+const showEditModal = ref(false);
+const editForm = ref({
+    title: '',
+    description: '',
+    fee: 5000,
+    total_slots: '',
+    closing_time: '',
+    location_id: 1
+});
+const editMenuItems = ref([]);
+const isSavingEdit = ref(false);
+
+const locationsList = ref([]);
+const isAddingLocation = ref(false);
+const newSpot = ref({ name: '', sub_name: '' });
 
 const statusColors = {
     pending: 'bg-primary text-white',
@@ -422,6 +566,109 @@ const closeSession = async () => {
         navigateTo('/jastiper/dashboard');
     } catch (e) {
         alert('Gagal menutup sesi: ' + (e.message || e));
+    }
+};
+
+const openEditModal = async () => {
+    if (!session.value) return;
+    
+    let closingTimeFormatted = '';
+    if (session.value.closing_time) {
+        const cleanTime = session.value.closing_time.replace(' ', 'T');
+        closingTimeFormatted = cleanTime.substring(0, 16);
+    }
+    
+    editForm.value = {
+        title: session.value.title || '',
+        description: session.value.description || '',
+        fee: session.value.fee || 5000,
+        total_slots: session.value.total_slots || '',
+        closing_time: closingTimeFormatted,
+        location_id: session.value.location_id || 1,
+    };
+    
+    if (session.value.menus) {
+        editMenuItems.value = JSON.parse(JSON.stringify(session.value.menus));
+    } else {
+        editMenuItems.value = [];
+    }
+    
+    await loadLocations();
+    showEditModal.value = true;
+};
+
+const loadLocations = async () => {
+  try {
+    const data = await getLocations();
+    locationsList.value = data;
+  } catch (error) {
+    console.error('Failed to load locations');
+  }
+};
+
+const addNewLocation = async () => {
+    if (!newSpot.value.name) return;
+    try {
+        const res = await createLocation({
+            name: newSpot.value.name,
+            sub_name: newSpot.value.sub_name,
+            icon: 'location_on'
+        });
+        await loadLocations();
+        editForm.value.location_id = res.id;
+        isAddingLocation.value = false;
+        newSpot.value = { name: '', sub_name: '' };
+    } catch (error) {
+        alert('Gagal menambah lokasi');
+    }
+};
+
+const addEditMenuItem = () => {
+    editMenuItems.value.push({ id: null, name: '', price: '' });
+};
+
+const removeEditMenuItem = (idx) => {
+    const item = editMenuItems.value[idx];
+    if (item.id) {
+        const isReferenced = orders.value.some(o => 
+            o.details && o.details.some(d => d.menu_item_id == item.id)
+        );
+        if (isReferenced) {
+            alert('Item menu ini sudah dipesan oleh pembeli! Tidak dapat dihapus.');
+            return;
+        }
+    }
+    editMenuItems.value.splice(idx, 1);
+};
+
+const saveSessionEdit = async () => {
+    try {
+        if (!editForm.value.title) return alert('Judul wajib diisi!');
+        if (!editForm.value.fee) return alert('Fee Jastip wajib diisi!');
+        if (!editForm.value.total_slots) return alert('Total Slot wajib diisi!');
+        if (!editForm.value.closing_time) return alert('Batas waktu wajib diisi!');
+        
+        for (const item of editMenuItems.value) {
+            if (!item.name) {
+                return alert('Pastikan semua menu sudah terisi nama barangnya!');
+            }
+        }
+
+        isSavingEdit.value = true;
+        const payload = {
+            ...editForm.value,
+            menu_json: JSON.stringify(editMenuItems.value)
+        };
+        
+        await updateSession(route.params.id, payload);
+        
+        alert('Sesi jastip berhasil diupdate! ✨');
+        showEditModal.value = false;
+        await fetchData();
+    } catch (e) {
+        alert('Gagal mengupdate sesi: ' + (e.message || e));
+    } finally {
+        isSavingEdit.value = false;
     }
 };
 </script>
