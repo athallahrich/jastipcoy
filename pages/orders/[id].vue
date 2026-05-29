@@ -147,8 +147,8 @@
                    </div>
 
                    <div v-if="order.pm_type === 'qr'" class="flex flex-col items-center gap-4">
-                      <img :src="order.pm_qr_data" class="w-full max-w-[200px] aspect-square object-contain bg-white rounded-2xl p-4 shadow-sm border border-outline-variant/20" />
-                      <p class="text-[10px] font-bold text-on-surface-variant text-center opacity-70">Scan QR untuk bayar</p>
+                      <img :src="order.pm_qr_data" class="w-full max-w-[200px] aspect-square object-contain bg-white rounded-2xl p-4 shadow-sm border border-outline-variant/20 cursor-zoom-in hover:scale-102 transition-all duration-300" @click="zoomedQrUrl = order.pm_qr_data" />
+                      <p class="text-[10px] font-bold text-on-surface-variant text-center opacity-70">Scan QR untuk bayar (Klik untuk memperbesar)</p>
                    </div>
                 </div>
 
@@ -172,8 +172,8 @@
                      </div>
 
                      <div v-else class="flex flex-col items-center gap-3 bg-surface-container/30 p-4 rounded-2xl border border-outline-variant/20">
-                        <img :src="method.qr_data" class="w-full max-w-[160px] aspect-square object-contain bg-white rounded-xl p-3 shadow-sm border border-outline-variant/20" />
-                        <p class="text-[10px] font-bold text-on-surface-variant text-center opacity-80">Scan QR untuk bayar</p>
+                        <img :src="method.qr_data" class="w-full max-w-[160px] aspect-square object-contain bg-white rounded-xl p-3 shadow-sm border border-outline-variant/20 cursor-zoom-in hover:scale-102 transition-all duration-300" @click="zoomedQrUrl = method.qr_data" />
+                        <p class="text-[10px] font-bold text-on-surface-variant text-center opacity-80">Scan QR untuk bayar (Klik untuk memperbesar)</p>
                      </div>
                   </div>
                 </div>
@@ -220,8 +220,13 @@
                  </div>
               </div>
 
-              <div class="flex gap-3">
-                <a :href="`https://wa.me/${(order.jastiper_phone || '').replace(/^0/, '62')}?text=${encodeURIComponent('Halo! Saya ingin konfirmasi pembayaran untuk order #ORDER-' + order.id)}`" target="_blank" class="flex-1 bg-primary text-on-primary font-bold py-4 rounded-full hover:scale-105 transition-all shadow-xl shadow-primary/40 flex justify-center items-center gap-2">
+              <div class="flex flex-col gap-3">
+                <button @click="openEditModal" class="w-full border-2 border-primary text-primary hover:bg-primary/5 font-black py-4 rounded-full hover:scale-105 transition-all shadow-md flex justify-center items-center gap-2">
+                  <span class="material-symbols-outlined text-xl">edit_note</span>
+                  <span class="text-sm">Revisi Pesanan</span>
+                </button>
+
+                <a :href="`https://wa.me/${(order.jastiper_phone || '').replace(/^0/, '62')}?text=${encodeURIComponent('Halo! Saya ingin konfirmasi pembayaran untuk order #ORDER-' + order.id)}`" target="_blank" class="w-full bg-primary text-on-primary font-bold py-4 rounded-full hover:scale-105 transition-all shadow-xl shadow-primary/40 flex justify-center items-center gap-2">
                   <span class="material-symbols-outlined text-xl">send</span>
                   <span class="text-sm">Konfirmasi (WA)</span>
                 </a>
@@ -252,7 +257,150 @@
        <p class="text-on-surface-variant">Pastikan ID order yang kamu masukkan benar.</p>
        <button @click="navigateTo('/')" class="btn btn-primary rounded-full mt-6 px-10">Back to Home</button>
     </div>
+
+    <!-- Zoomed QR Code Lightbox -->
+    <div v-if="zoomedQrUrl" class="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 cursor-zoom-out" @click="zoomedQrUrl = null">
+      <div class="relative bg-white rounded-[2.5rem] p-8 max-w-sm w-full flex flex-col items-center gap-4 shadow-2xl border border-outline/10" @click.stop>
+        <button @click="zoomedQrUrl = null" class="absolute top-4 right-4 btn btn-circle btn-ghost btn-sm text-on-surface-variant">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+        <h3 class="font-black text-on-surface text-lg text-center mt-2 font-plus-jakarta">QR Code Pembayaran</h3>
+        <img :src="zoomedQrUrl" class="w-full aspect-square object-contain bg-white rounded-2xl p-2 shadow-inner border border-outline-variant/20" />
+        <p class="text-xs font-bold text-on-surface-variant text-center opacity-80">Scan QR atau simpan gambar untuk membayar</p>
+      </div>
+    </div>
+
+    <!-- Edit Order Modal -->
+    <div v-if="isEditModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+      <div class="bg-white rounded-[2.5rem] p-8 max-w-2xl w-full max-h-[90vh] flex flex-col gap-0 shadow-2xl border border-outline/10" @click.stop>
+        
+        <!-- Modal Header -->
+        <div class="flex justify-between items-center pb-5 border-b border-surface-container mb-5">
+          <div>
+            <h3 class="font-black text-on-surface text-2xl font-plus-jakarta">Revisi Pesanan</h3>
+            <p class="text-xs font-medium text-on-surface-variant mt-0.5">Ubah jumlah, tambah menu baru, atau hapus item</p>
+          </div>
+          <button @click="isEditModalOpen = false" class="btn btn-circle btn-ghost btn-sm text-on-surface-variant">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <!-- Scrollable Body -->
+        <div class="flex-1 overflow-y-auto space-y-6 pr-1 max-h-[55vh]">
+
+          <!-- Section 1: Items currently in cart (qty > 0) -->
+          <div v-if="editCart.length > 0">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="material-symbols-outlined text-primary text-sm fill">shopping_bag</span>
+              <span class="text-[11px] font-black uppercase tracking-widest text-primary">Pesananmu Saat Ini</span>
+            </div>
+            <div class="space-y-3">
+              <div
+                v-for="cartItem in editCart"
+                :key="'cart-' + cartItem.id"
+                class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-primary-container/20 border-2 border-primary/15"
+              >
+                <div class="flex-1">
+                  <div class="flex items-center gap-2">
+                    <h4 class="font-bold text-on-surface text-base">{{ getMenuItemName(cartItem.id) }}</h4>
+                    <span class="badge badge-primary badge-xs font-bold">Dipesan</span>
+                  </div>
+                  <p class="text-primary text-sm font-black mt-0.5">
+                    <span v-if="getMenuItemPrice(cartItem.id) > 0">Rp {{ getMenuItemPrice(cartItem.id).toLocaleString('id-ID') }}</span>
+                    <span v-else class="text-xs italic text-on-surface-variant">Harga Menyusul</span>
+                  </p>
+                  <!-- Quantity controls -->
+                  <div class="mt-3 flex items-center gap-3 bg-white rounded-full px-3 py-1.5 w-fit border-2 border-primary/20 shadow-sm">
+                    <button @click="updateEditQuantity(cartItem.id, -1)" class="text-error hover:text-error/70 transition-colors flex items-center">
+                      <span class="material-symbols-outlined text-sm">{{ cartItem.quantity === 1 ? 'delete' : 'remove' }}</span>
+                    </button>
+                    <span class="font-black text-on-surface text-sm w-8 text-center select-none">{{ cartItem.quantity }}</span>
+                    <button @click="updateEditQuantity(cartItem.id, 1)" class="text-primary hover:text-primary/70 transition-colors flex items-center">
+                      <span class="material-symbols-outlined text-sm">add</span>
+                    </button>
+                  </div>
+                </div>
+                <!-- Note input -->
+                <div class="w-full sm:w-64">
+                  <label class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mb-1 block">Catatan Porsi</label>
+                  <input
+                    type="text"
+                    placeholder="Catatan (misal: Level 3, Tanpa bawang)..."
+                    class="input input-bordered input-sm w-full bg-white rounded-xl text-xs font-medium"
+                    :value="getEditNote(cartItem.id)"
+                    @input="updateEditNote(cartItem.id, $event.target.value)"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 2: Other menu items not yet in cart -->
+          <div v-if="menuItemsNotInCart.length > 0">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="material-symbols-outlined text-secondary text-sm fill">add_circle</span>
+              <span class="text-[11px] font-black uppercase tracking-widest text-secondary">Tambah Menu Lain</span>
+            </div>
+            <div class="space-y-3">
+              <div
+                v-for="item in menuItemsNotInCart"
+                :key="'menu-' + item.id"
+                class="flex items-center justify-between gap-4 p-4 rounded-2xl bg-surface-container/30 border border-outline-variant/10 hover:border-primary/20 hover:bg-surface-container/50 transition-all"
+              >
+                <div class="flex-1">
+                  <h4 class="font-bold text-on-surface text-base">{{ item.name }}</h4>
+                  <p class="text-primary text-sm font-black mt-0.5">
+                    <span v-if="item.price && parseInt(item.price) > 0">Rp {{ parseInt(item.price).toLocaleString('id-ID') }}</span>
+                    <span v-else class="text-xs italic text-on-surface-variant">Harga Menyusul</span>
+                  </p>
+                </div>
+                <button
+                  @click="updateEditQuantity(item.id, 1)"
+                  class="btn btn-sm btn-outline btn-primary rounded-full px-5 gap-1 font-bold shrink-0"
+                >
+                  <span class="material-symbols-outlined text-sm">add</span>
+                  Tambah
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty state -->
+          <div v-if="sessionMenu.length === 0 && editCart.length === 0" class="text-center py-8">
+            <span class="material-symbols-outlined text-4xl text-outline-variant/30">menu_book</span>
+            <p class="text-xs text-on-surface-variant italic mt-2">Menu sesi tidak tersedia.</p>
+          </div>
+
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="pt-5 border-t border-surface-container space-y-4 mt-5">
+          <div class="flex justify-between items-center">
+            <div>
+              <span class="font-bold text-on-surface-variant text-sm">Estimasi Total Baru</span>
+              <div class="text-xs text-on-surface-variant/60 font-medium">{{ editCart.reduce((a, c) => a + c.quantity, 0) }} item · Fee sudah termasuk</div>
+            </div>
+            <span class="text-2xl font-black text-primary font-plus-jakarta">
+              {{ isEditPriceConfirmed ? 'Rp ' + editGrandTotal.toLocaleString('id-ID') : 'Menyusul' }}
+            </span>
+          </div>
+          
+          <div class="flex gap-4">
+            <button @click="isEditModalOpen = false" class="flex-1 btn btn-ghost rounded-full font-bold">Batal</button>
+            <button
+              @click="saveOrderEdit"
+              class="flex-1 btn btn-primary rounded-full font-bold"
+              :disabled="editCart.length === 0 || isSavingEdit"
+            >
+              <span v-if="isSavingEdit" class="loading loading-spinner loading-xs"></span>
+              <span v-else>Simpan Perubahan</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
+
 </template>
 
 <script setup>
@@ -263,6 +411,138 @@ const router = useRouter();
 const order = ref(null);
 const loading = ref(true);
 const paymentMethods = ref([]);
+
+const zoomedQrUrl = ref(null);
+const sessionData = ref(null);
+const sessionMenu = ref([]);
+const editCart = ref([]);
+const isEditModalOpen = ref(false);
+const isSavingEdit = ref(false);
+
+const openEditModal = async () => {
+    try {
+        if (!sessionData.value) {
+            const res = await useApi().getSession(order.value.session_id);
+            sessionData.value = res;
+            try {
+                sessionMenu.value = JSON.parse(res.menu_json || '[]');
+            } catch (e) {
+                sessionMenu.value = [];
+            }
+        }
+        // Initialize editCart by matching order items to sessionMenu by name,
+        // so the cart IDs always align with sessionMenu item IDs.
+        editCart.value = orderItems.value.map(item => {
+            const menuMatch = sessionMenu.value.find(
+                m => m.id == item.id || m.name?.toLowerCase() === item.name?.toLowerCase()
+            );
+            return {
+                id: menuMatch ? menuMatch.id : item.name, // fallback to name string if not in menu
+                quantity: parseInt(item.quantity) || 1,
+                note: item.note || ''
+            };
+        });
+        isEditModalOpen.value = true;
+    } catch (e) {
+        alert('Gagal memuat menu sesi.');
+    }
+};
+
+const updateEditQuantity = (id, delta) => {
+  const existing = editCart.value.find(c => c.id === id);
+  if (existing) {
+    const newQty = existing.quantity + delta;
+    if (newQty <= 0) {
+      editCart.value = editCart.value.filter(c => c.id !== id);
+    } else {
+      existing.quantity = newQty;
+    }
+  } else if (delta > 0) {
+    editCart.value.push({ id, quantity: 1, note: '' });
+  }
+};
+
+const getEditQuantity = (id) => editCart.value.find(c => c.id === id)?.quantity ?? 0;
+
+const getEditNote = (id) => editCart.value.find(c => c.id === id)?.note || '';
+
+const updateEditNote = (id, note) => {
+  const existing = editCart.value.find(c => c.id === id);
+  if (existing) {
+    existing.note = note;
+  }
+};
+
+const editSubtotalNum = computed(() => {
+  return editCart.value.reduce((acc, c) => {
+    const item = sessionMenu.value.find(m => m.id === c.id);
+    const priceNum = parseInt(item?.price) || 0;
+    return acc + (priceNum * c.quantity);
+  }, 0);
+});
+
+const isEditPriceConfirmed = computed(() => {
+  if (editCart.value.length === 0) return true;
+  return editCart.value.every(c => {
+    const item = sessionMenu.value.find(m => m.id === c.id);
+    const val = parseInt(item?.price);
+    return !isNaN(val) && val > 0;
+  });
+});
+
+const editGrandTotal = computed(() => {
+  return editSubtotalNum.value + parseInt(order.value?.session_fee || 5000);
+});
+
+// Items from sessionMenu that are NOT yet in the cart
+const menuItemsNotInCart = computed(() => {
+  const cartIds = new Set(editCart.value.map(c => c.id));
+  return sessionMenu.value.filter(m => !cartIds.has(m.id));
+});
+
+// Helpers to resolve name/price from either sessionMenu or fallback to id string
+const getMenuItemName = (id) => {
+  const item = sessionMenu.value.find(m => m.id === id);
+  return item ? item.name : (typeof id === 'string' ? id : `Item #${id}`);
+};
+
+const getMenuItemPrice = (id) => {
+  const item = sessionMenu.value.find(m => m.id === id);
+  return parseInt(item?.price) || 0;
+};
+
+
+const saveOrderEdit = async () => {
+  try {
+    isSavingEdit.value = true;
+    const orderItemsList = editCart.value.map(c => {
+        const item = sessionMenu.value.find(m => m.id === c.id);
+        return {
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: c.quantity,
+            note: c.note || ''
+        };
+    });
+
+    const newAmount = editSubtotalNum.value + parseInt(order.value.session_fee || 5000);
+
+    await useApi().updateOrder(order.value.id, {
+        items: orderItemsList,
+        amount: newAmount
+    });
+
+    // Refresh data
+    await fetchOrder();
+    isEditModalOpen.value = false;
+    alert('Pesanan berhasil direvisi');
+  } catch (error) {
+    alert('Gagal memperbarui pesanan: ' + error.message);
+  } finally {
+    isSavingEdit.value = false;
+  }
+};
 
 const fetchOrder = async () => {
     try {

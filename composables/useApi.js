@@ -46,6 +46,7 @@ export const useApi = () => {
     placeOrder: (data) => fetchApi('/orders', { method: 'POST', body: JSON.stringify(data) }),
     getOrders: (sessionId) => fetchApi(`/orders?session_id=${sessionId}`),
     updateOrderStatus: (id, status) => fetchApi('/orders', { method: 'PATCH', body: JSON.stringify({ id, status }) }),
+    updateOrder: (id, data) => fetchApi('/orders', { method: 'PATCH', body: JSON.stringify({ id, ...data }) }),
     deleteOrder: (id) => fetchApi(`/orders?id=${id}`, { method: 'DELETE' }),
     updateBatchStatus: (sessionId, status) => fetchApi('/update_orders_status', { method: 'POST', body: JSON.stringify({ session_id: sessionId, status }) }),
     updateSessionMenuPrice: (sessionId, itemId, itemName, newPrice) => fetchApi('/update_session_menu_price', { method: 'POST', body: JSON.stringify({ session_id: sessionId, item_id: itemId, item_name: itemName, new_price: newPrice }) }),

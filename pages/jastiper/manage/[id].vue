@@ -66,6 +66,10 @@
           <span class="material-symbols-outlined">block</span>
           Tutup Sesi
         </button>
+        <button v-else @click="reopenSession" class="btn bg-emerald-500 hover:bg-emerald-600 text-white rounded-full px-6 md:px-8 gap-2 shadow-lg shadow-emerald-500/20 font-bold">
+          <span class="material-symbols-outlined">refresh</span>
+          Buka Sesi Kembali
+        </button>
       </div>
 
       <!-- Bulk Actions -->
@@ -566,6 +570,18 @@ const closeSession = async () => {
         navigateTo('/jastiper/dashboard');
     } catch (e) {
         alert('Gagal menutup sesi: ' + (e.message || e));
+    }
+};
+
+const reopenSession = async () => {
+    if (!confirm('Yakin ingin membuka kembali sesi jastip ini? Pelanggan akan bisa membuat pesanan baru.')) return;
+    try {
+        await useApi().updateSessionStatus(route.params.id, 'open');
+        if (session.value) session.value.status = 'open';
+        alert('Sesi berhasil dibuka kembali! ✨');
+        navigateTo('/jastiper/dashboard');
+    } catch (e) {
+        alert('Gagal membuka sesi kembali: ' + (e.message || e));
     }
 };
 
