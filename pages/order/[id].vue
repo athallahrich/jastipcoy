@@ -41,7 +41,8 @@
             class="bg-white rounded-3xl p-4 flex items-center gap-4 shadow-sm border border-outline-variant/20 group hover:shadow-xl hover:shadow-primary-container/10 transition-all"
           >
             <div class="w-24 h-24 rounded-2xl overflow-hidden shrink-0 relative shadow-inner bg-surface-container flex items-center justify-center">
-              <span class="material-symbols-outlined text-outline">restaurant</span>
+              <img v-if="item.image" :src="item.image" :alt="item.name" class="w-full h-full object-cover" />
+              <span v-else class="material-symbols-outlined text-outline">restaurant</span>
             </div>
             <div class="flex-1">
               <h3 class="font-bold text-on-surface text-lg">{{ item.name }}</h3>

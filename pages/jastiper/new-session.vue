@@ -135,18 +135,41 @@
               </h2>
               
               <div class="space-y-4">
-                <div v-for="(item, idx) in menuItems" :key="idx" class="flex gap-2 items-end bg-surface-container/30 p-4 rounded-2xl border border-outline-variant/20">
-                  <div class="flex-1 space-y-2">
-                    <label class="text-[10px] font-black uppercase text-on-surface-variant px-2">Nama Barang</label>
-                    <input v-model="item.name" placeholder="Item name" class="input input-bordered input-sm w-full rounded-xl" required />
+                <div v-for="(item, idx) in menuItems" :key="idx" class="bg-surface-container/30 p-4 rounded-2xl border border-outline-variant/20 space-y-3">
+                  <div class="flex gap-2 items-end">
+                    <!-- Image Upload -->
+                    <div class="w-20 shrink-0 space-y-1">
+                      <label class="text-[10px] font-black uppercase text-on-surface-variant px-1">Foto</label>
+                      <div 
+                        class="w-20 h-20 rounded-xl border-2 border-dashed border-outline-variant/30 overflow-hidden cursor-pointer hover:border-primary/40 transition-colors relative group flex items-center justify-center bg-white"
+                        @click="triggerMenuImageUpload(idx)"
+                      >
+                        <img v-if="item.image" :src="item.image" class="w-full h-full object-cover" />
+                        <span v-else class="material-symbols-outlined text-outline/40 text-2xl">add_photo_alternate</span>
+                        <div v-if="item.image" class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <span class="material-symbols-outlined text-white text-lg">edit</span>
+                        </div>
+                      </div>
+                      <input 
+                        :ref="el => menuImageInputs[idx] = el" 
+                        type="file" 
+                        accept="image/*" 
+                        class="hidden" 
+                        @change="(e) => handleMenuImageUpload(idx, e)" 
+                      />
+                    </div>
+                    <div class="flex-1 space-y-2">
+                      <label class="text-[10px] font-black uppercase text-on-surface-variant px-2">Nama Barang</label>
+                      <input v-model="item.name" placeholder="Item name" class="input input-bordered input-sm w-full rounded-xl" required />
+                    </div>
+                    <div class="w-32 space-y-2">
+                      <label class="text-[10px] font-black uppercase text-on-surface-variant px-2">Harga (Opsional)</label>
+                      <input v-model="item.price" type="number" placeholder="Bisa kosong / 0" class="input input-bordered input-sm w-full rounded-xl" />
+                    </div>
+                    <button type="button" @click="removeItem(idx)" class="btn btn-ghost btn-sm btn-circle text-error mb-1">
+                      <span class="material-symbols-outlined text-sm">delete</span>
+                    </button>
                   </div>
-                  <div class="w-32 space-y-2">
-                    <label class="text-[10px] font-black uppercase text-on-surface-variant px-2">Harga (Opsional)</label>
-                    <input v-model="item.price" type="number" placeholder="Bisa kosong / 0" class="input input-bordered input-sm w-full rounded-xl" />
-                  </div>
-                  <button type="button" @click="removeItem(idx)" class="btn btn-ghost btn-sm btn-circle text-error mb-1">
-                    <span class="material-symbols-outlined text-sm">delete</span>
-                  </button>
                 </div>
               </div>
 
@@ -378,11 +401,50 @@ const pageSteps = [
 const triggerTour = () => startTour('new_session', pageSteps, true);
 
 const menuItems = ref([
-  { id: Date.now(), name: '', price: '' }
+  { id: Date.now(), name: '', price: '', image: '' }
 ]);
 
+const menuImageInputs = ref({});
+
+const triggerMenuImageUpload = (idx) => {
+  const input = menuImageInputs.value[idx];
+  if (input) input.click();
+};
+
+const handleMenuImageUpload = (idx, e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) {
+    alert('Ukuran gambar maksimal 2MB!');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    // Compress image using canvas
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const maxSize = 300;
+      let w = img.width;
+      let h = img.height;
+      if (w > maxSize || h > maxSize) {
+        if (w > h) { h = (h / w) * maxSize; w = maxSize; }
+        else { w = (w / h) * maxSize; h = maxSize; }
+      }
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      menuItems.value[idx].image = canvas.toDataURL('image/jpeg', 0.7);
+    };
+    img.src = event.target.result;
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+};
+
 const addItem = () => {
-    menuItems.value.push({ id: Date.now() + Math.floor(Math.random() * 1000), name: '', price: '' });
+    menuItems.value.push({ id: Date.now() + Math.floor(Math.random() * 1000), name: '', price: '', image: '' });
 };
 
 const removeItem = (idx) => {
